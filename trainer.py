@@ -93,7 +93,6 @@ class SegmentationTrainer(AbstractTrainer):
             targets = targets.to(self.device)
 
             outputs = self._model(inputs)
-
             b, _, h, w = outputs.size()
             outputs = outputs.permute(0, 2, 3, 1)
 

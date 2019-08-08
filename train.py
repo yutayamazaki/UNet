@@ -17,9 +17,9 @@ def load_text(path: str) -> list:
     return text
 
 
-def load_data():
+def load_dataset():
     X = glob.glob('./VOCdevkit/VOC2012/JPEGImages/*')
-    y = glob.glob('./VOCdevkit/VOC2012/SegmentationObject/*')
+    y = glob.glob('./VOCdevkit/VOC2012/SegmentationClass/*')
 
     train_path = './VOCdevkit/VOC2012/ImageSets/Segmentation/train.txt'
     valid_path = './VOCdevkit/VOC2012/ImageSets/Segmentation/val.txt'
@@ -45,28 +45,28 @@ def load_data():
 
 
 if __name__ == '__main__':
-    batch_size = 9
+    batch_size = 4
     num_epochs = 200
-    num_classes = 21
+    num_classes = 22
     min_lr = 1e-4
     max_lr = 0.1
 
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
-    model = UNet(in_channels=3, num_classes=21)
+    model = UNet(in_channels=3, num_classes=num_classes)
     model = model.to(device)
 
     criterion = nn.CrossEntropyLoss()
 
     X_train, X_valid, y_train, y_valid = load_dataset()
 
-    dtrain = SegmentationDataset(X_train, y_train, num_classes=21)
+    dtrain = SegmentationDataset(X_train, y_train, num_classes)
     train_loader = torch.utils.data.DataLoader(dtrain,
                                                batch_size=batch_size,
                                                shuffle=True,
                                                drop_last=True)
 
-    dvalid = SegmentationDataset(X_valid, y_valid, num_classes=21)
+    dvalid = SegmentationDataset(X_valid, y_valid, num_classes)
     valid_loader = torch.utils.data.DataLoader(dvalid, batch_size=batch_size)
 
     optimizer = torch.optim.SGD(model.parameters(),
@@ -78,7 +78,7 @@ if __name__ == '__main__':
                                                            T_max=num_epochs,
                                                            eta_min=min_lr)
 
-    trainer = SegmentationTrainer(model, optimizer, criterion, num_classes=num_classes)
+    trainer = SegmentationTrainer(model, optimizer, criterion, num_classes)
 
     for epoch in range(1, 1+num_epochs):
         train_loss = trainer.epoch_train(train_loader)
