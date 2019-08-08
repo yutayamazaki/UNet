@@ -17,28 +17,6 @@ def load_text(path: str) -> list:
     return text
 
 
-def load_dataset():
-    train_path = './VOCdevkit/VOC2012/ImageSets/Segmentation/train.txt'
-    valid_path = './VOCdevkit/VOC2012/ImageSets/Segmentation/val.txt'
-
-    train_images = load_text(train_path)
-    valid_images = load_text(valid_path)
-
-    x_dir = './VOCdevkit/VOC2012/JPEGImages'
-    y_dir = './VOCdevkit/VOC2012/SegmentationObject'
-    X_train, y_train = [], []
-    for i in train_images:
-        X_train.append(os.path.join(x_dir, f'{i}.png'))
-        y_train.append(os.path.join(y_dir, f'{i}.png'))
-
-    X_valid, y_valid = [], []
-    for i in valid_images:
-        X_valid.append(os.path.join(x_dir, f'{i}.png'))
-        y_valid.append(os.path.join(y_dir, f'{i}.png'))
-
-    return X_train, X_valid, y_train, y_valid
-
-
 def load_data():
     X = glob.glob('./VOCdevkit/VOC2012/JPEGImages/*')
     y = glob.glob('./VOCdevkit/VOC2012/SegmentationObject/*')
@@ -80,7 +58,7 @@ if __name__ == '__main__':
 
     criterion = nn.CrossEntropyLoss()
 
-    X_train, X_valid, y_train, y_valid = load_data()
+    X_train, X_valid, y_train, y_valid = load_dataset()
 
     dtrain = SegmentationDataset(X_train, y_train, num_classes=21)
     train_loader = torch.utils.data.DataLoader(dtrain,
