@@ -18,7 +18,7 @@ def load_config(path: str) -> dict:
 
 
 def dump_config(path: str, dic: dict):
-    with open('ok.yaml', 'w') as f:
+    with open(path, 'w') as f:
         yaml.dump(dic, f)
 
 
