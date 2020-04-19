@@ -94,7 +94,6 @@ if __name__ == '__main__':
     trainer = SegmentationTrainer(model, optimizer, criterion, cfg['num_classes'])
 
     for epoch in range(1, 1 + cfg['num_epochs']):
-        print('Start training...')
         train_loss = trainer.epoch_train(train_loader)
         valid_loss = trainer.epoch_eval(valid_loader)
 
