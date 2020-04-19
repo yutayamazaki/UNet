@@ -9,7 +9,7 @@ import torch.nn.functional as F
 
 from datasets import SegmentationDataset
 from trainer import SegmentationTrainer
-from unet import UNet
+from unet import UNet, UNetResNet34
 
 
 def load_config(path: str) -> dict:
@@ -66,7 +66,8 @@ if __name__ == '__main__':
 
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
-    model = UNet(in_channels=3, num_classes=cfg['num_classes'])
+    model = UNetResNet34(cfg['num_classes'])
+    # model = UNet(in_channels=3, num_classes=cfg['num_classes'])
     model = model.to(device)
 
     criterion = nn.CrossEntropyLoss()
@@ -111,7 +112,7 @@ if __name__ == '__main__':
         print(f'EPOCH: [{epoch}/{cfg["num_epochs"]}]')
         print(f'TRAIN LOSS: {train_loss:.3f}, VALID LOSS: {valid_loss:.3f}')
 
-        path = os.path.join('../weights', f'epoch{epoch}_loss{valid_loss:.3f}.pth')
+        path = os.path.join('../weights', f'loss{valid_loss:.3f}.pth')
         torch.save(trainer.weights, path)
 
     path = os.path.join('../configs', f'{best_loss}.yml')
