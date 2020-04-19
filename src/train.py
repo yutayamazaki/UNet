@@ -1,6 +1,7 @@
 import glob
 import os
 
+import yaml
 import numpy as np
 import torch
 import torch.nn as nn
@@ -11,6 +12,11 @@ from trainer import SegmentationTrainer
 from unet import UNet
 
 
+def load_config(path: str) -> dict:
+    with open(path, 'r') as f:
+        return yaml.load(f, Loader=yaml.FullLoader)
+
+
 def load_text(path: str) -> list:
     with open(path, 'r', encoding='utf-8') as f:
         text = f.read().split('\n')
@@ -18,11 +24,11 @@ def load_text(path: str) -> list:
 
 
 def load_dataset():
-    X = glob.glob('./VOCdevkit/VOC2012/JPEGImages/*')
-    y = glob.glob('./VOCdevkit/VOC2012/SegmentationClass/*')
+    X = glob.glob('../VOCdevkit/VOC2012/JPEGImages/*')
+    y = glob.glob('../VOCdevkit/VOC2012/SegmentationClass/*')
 
-    train_path = './VOCdevkit/VOC2012/ImageSets/Segmentation/train.txt'
-    valid_path = './VOCdevkit/VOC2012/ImageSets/Segmentation/val.txt'
+    train_path = '../VOCdevkit/VOC2012/ImageSets/Segmentation/train.txt'
+    valid_path = '../VOCdevkit/VOC2012/ImageSets/Segmentation/val.txt'
 
     train_images = load_text(train_path)
     valid_images = load_text(valid_path)
@@ -51,42 +57,50 @@ if __name__ == '__main__':
     min_lr = 1e-4
     max_lr = 0.1
 
+    cfg = load_config('./config.yml')
+
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
-    model = UNet(in_channels=3, num_classes=num_classes)
+    model = UNet(in_channels=3, num_classes=cfg['num_classes'])
     model = model.to(device)
 
     criterion = nn.CrossEntropyLoss()
 
     X_train, X_valid, y_train, y_valid = load_dataset()
 
-    dtrain = SegmentationDataset(X_train, y_train, num_classes)
+    dtrain = SegmentationDataset(X_train, y_train, cfg['num_classes'])
     train_loader = torch.utils.data.DataLoader(dtrain,
-                                               batch_size=batch_size,
+                                               batch_size=cfg['batch_size'],
                                                shuffle=True,
                                                drop_last=True)
 
-    dvalid = SegmentationDataset(X_valid, y_valid, num_classes)
-    valid_loader = torch.utils.data.DataLoader(dvalid, batch_size=batch_size)
+    dvalid = SegmentationDataset(X_valid, y_valid, cfg['num_classes'])
+    valid_loader = torch.utils.data.DataLoader(
+        dvalid,
+        batch_size=cfg['batch_size']
+    )
 
     optimizer = torch.optim.SGD(model.parameters(),
-                                lr=max_lr,
-                                momentum=0.9,
-                                weight_decay=3e-4)
+                                lr=cfg['max_lr'],
+                                momentum=cfg['momentum'],
+                                weight_decay=cfg['weight_decay'])
 
-    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer,
-                                                           T_max=num_epochs,
-                                                           eta_min=min_lr)
+    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
+        optimizer,
+        T_max=cfg['num_epochs'],
+        eta_min=cfg['min_lr']
+    )
 
-    trainer = SegmentationTrainer(model, optimizer, criterion, num_classes)
+    trainer = SegmentationTrainer(model, optimizer, criterion, cfg['num_classes'])
 
-    for epoch in range(1, 1+num_epochs):
+    for epoch in range(1, 1 + cfg['num_epochs']):
+        print('Start training...')
         train_loss = trainer.epoch_train(train_loader)
         valid_loss = trainer.epoch_eval(valid_loader)
 
         scheduler.step()
 
-        print(f'EPOCH: [{epoch}/{num_epochs}]')
+        print(f'EPOCH: [{epoch}/{cfg["num_epochs"]}]')
         print(f'TRAIN LOSS: {train_loss:.3f}, VALID LOSS: {valid_loss:.3f}')
 
         path = os.path.join('weights', f'epoch{epoch}_loss{valid_loss:.3f}.pth')
