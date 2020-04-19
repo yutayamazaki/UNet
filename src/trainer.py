@@ -1,8 +1,7 @@
 from sklearn.metrics import accuracy_score
 import torch
+import torch.nn.functional as F
 from tqdm import tqdm
-
-import metrics
 
 
 class AbstractTrainer:
@@ -87,7 +86,6 @@ class SegmentationTrainer(AbstractTrainer):
     def epoch_train(self, train_loader):
         self._model.train()
         epoch_loss = 0.
-        epoch_iou = 0.
         for inputs, targets in train_loader:
             inputs = inputs.to(self.device)
             targets = targets.to(self.device)
@@ -111,7 +109,6 @@ class SegmentationTrainer(AbstractTrainer):
     def epoch_eval(self, eval_loader):
         self._model.eval()
         epoch_loss = 0.
-        epoch_iou = 0.
         for inputs, targets in eval_loader:
             inputs = inputs.to(self.device)
             targets = targets.to(self.device)

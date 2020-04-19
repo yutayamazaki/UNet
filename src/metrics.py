@@ -5,7 +5,8 @@ import torch
 def intersection_and_union(preds: torch.Tensor, labels: torch.Tensor,
                            ignore_index=255, num_classes=19):
 
-    assert ignore_index > num_classes, 'ignore_index should be grater than n_classes'
+    assert ignore_index > num_classes, \
+        'ignore_index should be grater than n_classes'
 
     preds = preds.byte().flatten()
     labels = labels.byte().flatten()
@@ -30,22 +31,18 @@ def intersection_and_union(preds: torch.Tensor, labels: torch.Tensor,
 
 def mean_iou(outputs, labels, num_classes=19):
     """ Calculate IoU for torch.Tensor
-    Parameters
-    ----------
-    outputs: torch.Tensor 
-        Predicted tensor with size (B*H*W, NumClasses).
+    Args:
+    outputs (torch.Tensor): Predicted tensor with size (B*H*W, NumClasses).
 
-    labels: torch.Tensor
-        Truth label with size (B*H*W).
+    labels (torch.Tensor): Truth label with size (B*H*W).
 
-    Returns
-    -------
-    iou: np.float
-        Calclated IoU metric.
+    Returns:
+        np.float: Calclated IoU metric.
     """
-
     preds = outputs.argmax(dim=1)
     labels = labels
-    intersection, union = intersection_and_union(preds, labels, num_classes=num_classes)
+    intersection, union = intersection_and_union(
+        preds, labels, num_classes=num_classes
+    )
 
     return np.mean(intersection / (union + 1e-16))
