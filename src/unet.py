@@ -174,8 +174,12 @@ class cSE(nn.Module):
     def __init__(self, in_channels, reduction=4):
         super(cSE, self).__init__()
         self.gap = nn.AdaptiveAvgPool2d(1)
-        self.conv1 = nn.Conv2d(in_channels, in_channels // reduction, kernel_size=1, stride=1)
-        self.conv2 = nn.Conv2d(in_channels // reduction, in_channels, kernel_size=1, stride=1)
+        self.conv1 = nn.Conv2d(
+            in_channels, in_channels // reduction, kernel_size=1, stride=1
+        )
+        self.conv2 = nn.Conv2d(
+            in_channels // reduction, in_channels, kernel_size=1, stride=1
+        )
         self.relu = nn.ReLU(inplace=True)
 
     def forward(self, x):
@@ -224,7 +228,7 @@ class Decoder(nn.Module):
 
     def forward(self, x, e=None):
         """ [B, C, H, W] -> [B, C, H*2, W*2] """
-        x = F.upsample(input=x, scale_factor=2, mode='bilinear', align_corners=True)
+        x = F.upsample(x, scale_factor=2, mode='bilinear', align_corners=True)
         if e is not None:
             print(f'{x.shape}, {e.shape}')
             x = torch.cat([x, e], 1)
@@ -314,12 +318,16 @@ class UNetResNet34(nn.Module):
         f = torch.cat(
             (
                 d1,
-                F.upsample(d2, scale_factor=2, mode='bilinear', align_corners=True),
-                F.upsample(d3, scale_factor=4, mode='bilinear', align_corners=True),
-                F.upsample(d4, scale_factor=8, mode='bilinear', align_corners=True),
-                F.upsample(d5, scale_factor=16, mode='bilinear', align_corners=True)
-            ),
-        1)  # [B, 320, H, W]
+                F.upsample(d2, scale_factor=2, mode='bilinear',
+                           align_corners=True),
+                F.upsample(d3, scale_factor=4, mode='bilinear',
+                           align_corners=True),
+                F.upsample(d4, scale_factor=8, mode='bilinear',
+                           align_corners=True),
+                F.upsample(d5, scale_factor=16, mode='bilinear',
+                           align_corners=True)
+            ), 1
+        )  # [B, 320, H, W]
         logit = self.logit(f)  # [B, num_classes, H, W]
         return logit
 

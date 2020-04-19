@@ -1,11 +1,9 @@
 import glob
 import os
 
-import yaml
-import numpy as np
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
+import yaml
 
 from datasets import SegmentationDataset
 from trainer import SegmentationTrainer
@@ -96,14 +94,18 @@ if __name__ == '__main__':
         eta_min=cfg['min_lr']
     )
 
-    trainer = SegmentationTrainer(model, optimizer, criterion, cfg['num_classes'])
+    trainer = SegmentationTrainer(
+        model, optimizer, criterion, cfg['num_classes']
+    )
     best_loss = 10000.
     for epoch in range(1, 1 + cfg['num_epochs']):
         train_loss = trainer.epoch_train(train_loader)
         valid_loss = trainer.epoch_eval(valid_loader)
         if valid_loss < best_loss:
             best_loss = valid_loss
-            path = os.path.join('../weights', f'epoch{epoch}_loss{valid_loss:.3f}.pth')
+            path = os.path.join(
+                '../weights', f'epoch{epoch}_loss{valid_loss:.3f}.pth'
+            )
             torch.save(trainer.weights, path)
 
         scheduler.step()
@@ -111,9 +113,10 @@ if __name__ == '__main__':
         print(f'EPOCH: [{epoch}/{cfg["num_epochs"]}]')
         print(f'TRAIN LOSS: {train_loss:.3f}, VALID LOSS: {valid_loss:.3f}')
 
-        path = os.path.join('../weights', f'epoch{epoch}_loss{valid_loss:.3f}.pth')
+        path = os.path.join(
+            '../weights', f'epoch{epoch}_loss{valid_loss:.3f}.pth'
+        )
         torch.save(trainer.weights, path)
 
     path = os.path.join('../configs', f'{best_loss}.yml')
     dump_config(path, cfg)
-

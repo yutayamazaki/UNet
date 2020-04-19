@@ -2,9 +2,10 @@ import os
 
 from PIL import Image
 from PIL import ImageFile
-ImageFile.LOAD_TRUNCATED_IMAGES = True
 import torch
 import torchvision
+
+ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 
 class SegmentationDataset(torch.utils.data.Dataset):
