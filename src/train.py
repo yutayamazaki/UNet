@@ -103,5 +103,6 @@ if __name__ == '__main__':
         print(f'EPOCH: [{epoch}/{cfg["num_epochs"]}]')
         print(f'TRAIN LOSS: {train_loss:.3f}, VALID LOSS: {valid_loss:.3f}')
 
-        path = os.path.join('weights', f'epoch{epoch}_loss{valid_loss:.3f}.pth')
+        path = os.path.join('../weights', f'epoch{epoch}_loss{valid_loss:.3f}.pth')
         torch.save(trainer.weights, path)
+
