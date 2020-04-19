@@ -57,27 +57,27 @@ class UNet(nn.Module):
         self.in_conv = conv_relu(in_channels, 64)
         self.out_conv = conv_relu(64, num_classes)
 
-        self.down1 = DownBlock(64, 128)
-        self.down2 = DownBlock(128, 256)
-        self.down3 = DownBlock(256, 512)
-        self.down4 = DownBlock(512, 512)
+        self.encode1 = DownBlock(64, 128)
+        self.encode2 = DownBlock(128, 256)
+        self.encode3 = DownBlock(256, 512)
+        self.encode4 = DownBlock(512, 512)
 
-        self.up1 = UpBlock(1024, 256)
-        self.up2 = UpBlock(512, 128)
-        self.up3 = UpBlock(256, 64)
-        self.up4 = UpBlock(128, 64)
+        self.decode1 = UpBlock(1024, 256)
+        self.decode2 = UpBlock(512, 128)
+        self.decode3 = UpBlock(256, 64)
+        self.decode4 = UpBlock(128, 64)
 
     def forward(self, x):
         x1 = self.in_conv(x)
-        x2 = self.down1(x1)
-        x3 = self.down2(x2)
-        x4 = self.down3(x3)
-        x5 = self.down4(x4)
+        x2 = self.encode1(x1)
+        x3 = self.encode2(x2)
+        x4 = self.encode3(x3)
+        x5 = self.encode4(x4)
 
-        x = self.up1(x5, x4)
-        x = self.up2(x, x3)
-        x = self.up3(x, x2)
-        x = self.up4(x, x1)
+        x = self.decode1(x5, x4)
+        x = self.decode2(x, x3)
+        x = self.decode3(x, x2)
+        x = self.decode4(x, x1)
 
         x = self.out_conv(x)
         return torch.sigmoid(x)
@@ -325,11 +325,9 @@ class UNetResNet34(nn.Module):
 
 
 if __name__ == '__main__':
+    x = torch.zeros((2, 3, 256, 256))
+
     model = UNet(3, 10)
-
-    x = torch.zeros((2, 3, 256, 256))
     print(model(x).size())
-
     model = UNetResNet34(num_classes=10)
-    x = torch.zeros((2, 3, 256, 256))
     print(model(x).size())

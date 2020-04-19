@@ -17,6 +17,11 @@ def load_config(path: str) -> dict:
         return yaml.load(f, Loader=yaml.FullLoader)
 
 
+def dump_config(path: str, dic: dict):
+    with open(path, 'w') as f:
+        yaml.dump(dic, f)
+
+
 def load_text(path: str) -> list:
     with open(path, 'r', encoding='utf-8') as f:
         text = f.read().split('\n')
@@ -92,11 +97,14 @@ if __name__ == '__main__':
     )
 
     trainer = SegmentationTrainer(model, optimizer, criterion, cfg['num_classes'])
-
+    best_loss = 10000.
     for epoch in range(1, 1 + cfg['num_epochs']):
-        print('Start training...')
         train_loss = trainer.epoch_train(train_loader)
         valid_loss = trainer.epoch_eval(valid_loader)
+        if valid_loss < best_loss:
+            best_loss = valid_loss
+            path = os.path.join('../weights', f'epoch{epoch}_loss{valid_loss:.3f}.pth')
+            torch.save(trainer.weights, path)
 
         scheduler.step()
 
@@ -105,4 +113,7 @@ if __name__ == '__main__':
 
         path = os.path.join('../weights', f'epoch{epoch}_loss{valid_loss:.3f}.pth')
         torch.save(trainer.weights, path)
+
+    path = os.path.join('../configs', f'{best_loss}.yml')
+    dump_config(path, cfg)
 
