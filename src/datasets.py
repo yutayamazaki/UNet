@@ -20,7 +20,7 @@ class SegmentationDataset(torch.utils.data.Dataset):
     transform: torchvision.transforms
         Transform for image.
     """
-    def __init__(self, X,  y, num_classes, transform=None, img_size=224):
+    def __init__(self, X,  y, num_classes, transform=None, img_size=256):
         self.num_classes = num_classes
         self.X = X
         self.y = y
@@ -54,6 +54,6 @@ class SegmentationDataset(torch.utils.data.Dataset):
 
         x = self.transform(x)
         y = self.transform(y) * 255
-        y[y == 255] = 21
+        y[y == 255] = 21  # Background
 
         return x, y.long()
