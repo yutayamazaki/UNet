@@ -1,10 +1,12 @@
 # Constant variables
-num_classes: 22
+num_classes: 22  # include background
 
 # Hyper parameters
+model: UNetResNet34  # UNet or UNetResNet34
+img_size: 256
 batch_size: 4
-num_epochs: 200
+num_epochs: 100
 min_lr: 0.0001
-max_lr: 0.1
+max_lr: 0.005
 momentum: 0.9
 weight_decay: 0.0003

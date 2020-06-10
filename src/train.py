@@ -2,6 +2,7 @@ import glob
 import logging.config
 import os
 from logging import getLogger
+from typing import Any, Dict
 
 import torch
 import torch.nn as nn
@@ -58,36 +59,35 @@ def load_dataset():
         elif os.path.splitext(os.path.basename(i))[0] in valid_images:
             y_valid.append(i)
 
-    return X_train, X_valid, y_train, y_valid
+    return X_train[:5], X_valid[:5], y_train[:5], y_valid[:5]
 
 
 if __name__ == '__main__':
-    batch_size = 4
-    num_epochs = 200
-    num_classes = 22
-    min_lr = 1e-4
-    max_lr = 0.1
-
     cfg: Dict[str, Any] = load_config('./config.yml')
     logger.info(f'Training configurations: {cfg}')
 
     device: str = 'cuda' if torch.cuda.is_available() else 'cpu'
 
     model = unet.UNetResNet34(cfg['num_classes'])
-    # model = unet.UNet(in_channels=3, num_classes=cfg['num_classes'])
     model = model.to(device)
 
     criterion = nn.CrossEntropyLoss()
 
     X_train, X_valid, y_train, y_valid = load_dataset()
 
-    dtrain = SegmentationDataset(X_train, y_train, cfg['num_classes'])
+    dtrain = SegmentationDataset(
+        X=X_train, y=y_train, num_classes=cfg['num_classes'],
+        img_size=cfg['img_size']
+    )
     train_loader = torch.utils.data.DataLoader(dtrain,
                                                batch_size=cfg['batch_size'],
                                                shuffle=True,
                                                drop_last=True)
 
-    dvalid = SegmentationDataset(X_valid, y_valid, cfg['num_classes'])
+    dvalid = SegmentationDataset(
+        X=X_valid, y=y_valid, num_classes=cfg['num_classes'],
+        img_size=cfg['img_size']
+    )
     valid_loader = torch.utils.data.DataLoader(
         dvalid,
         batch_size=cfg['batch_size']
@@ -121,7 +121,9 @@ if __name__ == '__main__':
         scheduler.step()
 
         logger.info(f'EPOCH: [{epoch}/{cfg["num_epochs"]}]')
-        logger.info(f'TRAIN LOSS: {train_loss:.3f}, VALID LOSS: {valid_loss:.3f}')
+        logger.info(
+            f'TRAIN LOSS: {train_loss:.3f}, VALID LOSS: {valid_loss:.3f}'
+        )
 
     path = os.path.join('../configs', f'{best_loss}.yml')
     dump_config(path, cfg)

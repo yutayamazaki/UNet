@@ -1,7 +1,5 @@
-from sklearn.metrics import accuracy_score
 import torch
-import torch.nn.functional as F
-from tqdm import tqdm
+from torch.autograd._functions import Resize
 
 
 class AbstractTrainer:
@@ -25,62 +23,6 @@ class AbstractTrainer:
         return self._model.state_dict()
 
 
-class RecognitionTrainer(AbstractTrainer):
-
-    def epoch_train(self, train_loader):
-        self._model.train()
-        epoch_loss = 0
-        y_preds, y_trues = torch.Tensor([]).long(), torch.Tensor([]).long()
-
-        for inputs, targets in tqdm(train_loader):
-            inputs = inputs.to(self.device)
-            targets = targets.to(self.device).long()
-
-            self.optimizer.zero_grad()
-            outputs = F.softmax(self._model(inputs), dim=1)
-
-            loss = self.criterion(outputs, targets)
-
-            loss.backward()
-            self.optimizer.step()
-
-            epoch_loss += loss.item()
-            _, predicted = torch.max(outputs.data, 1)
-            y_preds = torch.cat([y_preds, predicted.cpu()])
-            y_trues = torch.cat([y_trues, targets.cpu()])
-
-        epoch_loss /= len(train_loader)
-        y_trues = y_trues.numpy()
-        y_preds = y_preds.numpy()
-        acc = accuracy_score(y_trues, y_preds)
-
-        return epoch_loss, acc
-
-    def epoch_eval(self, eval_loader):
-        self._model.eval()
-        epoch_loss = 0
-        y_preds, y_trues = torch.Tensor([]).long(), torch.Tensor([]).long()
-
-        for inputs, targets in tqdm(eval_loader):
-            inputs = inputs.to(self.device)
-            targets = targets.to(self.device).long()
-            outputs = F.softmax(self._model(inputs), dim=1)
-
-            loss = self.criterion(outputs, targets)
-
-            epoch_loss += loss.item()
-            _, predicted = torch.max(outputs.data, 1)
-            y_preds = torch.cat([y_preds, predicted.cpu()])
-            y_trues = torch.cat([y_trues, targets.cpu()])
-
-        epoch_loss /= len(eval_loader)
-        y_trues = y_trues.numpy()
-        y_preds = y_preds.numpy()
-        acc = accuracy_score(y_trues, y_preds)
-
-        return epoch_loss, acc
-
-
 class SegmentationTrainer(AbstractTrainer):
 
     def epoch_train(self, train_loader):
@@ -94,8 +36,12 @@ class SegmentationTrainer(AbstractTrainer):
             b, _, h, w = outputs.size()
             outputs = outputs.permute(0, 2, 3, 1)
 
-            outputs = outputs.resize(b*h*w, self.num_classes)
-            targets = targets.resize(b*h*w)
+            outputs = Resize.apply(outputs, (b*h*w, self.num_classes))
+            targets = targets.reshape(-1)
+
+            # Got deprecated warnings.
+            # outputs = outputs.resize(b*h*w, self.num_classes)
+            # targets = targets.resize(b*h*w)
 
             loss = self.criterion(outputs, targets)
 
@@ -118,8 +64,12 @@ class SegmentationTrainer(AbstractTrainer):
             b, _, h, w = outputs.size()
             outputs = outputs.permute(0, 2, 3, 1)
 
-            outputs = outputs.resize(b*h*w, self.num_classes)
-            targets = targets.resize(b*h*w)
+            outputs = Resize.apply(outputs, (b*h*w, self.num_classes))
+            targets = targets.reshape(-1)
+
+            # Got deprecated warnings.
+            # outputs = outputs.resize(b*h*w, self.num_classes)
+            # targets = targets.resize(b*h*w)
 
             loss = self.criterion(outputs, targets)
 

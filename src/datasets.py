@@ -21,11 +21,12 @@ class SegmentationDataset(torch.utils.data.Dataset):
     transform: torchvision.transforms
         Transform for image.
     """
-    def __init__(self, X,  y, num_classes, transform=None, img_size=256):
-        self.num_classes = num_classes
+    def __init__(self, X,  y, num_classes: int,
+                 transform=None, img_size: int = 256):
+        self.num_classes: int = num_classes
         self.X = X
         self.y = y
-        self.img_size = img_size
+        self.img_size: int = img_size
         self._check_images_exist()
 
         if transform is None:
@@ -35,7 +36,7 @@ class SegmentationDataset(torch.utils.data.Dataset):
             ])
         self.transform = transform
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.X)
 
     def _check_images_exist(self):
@@ -56,5 +57,4 @@ class SegmentationDataset(torch.utils.data.Dataset):
         x = self.transform(x)
         y = self.transform(y) * 255
         y[y == 255] = 21  # Background
-
         return x, y.long()
