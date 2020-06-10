@@ -2,8 +2,10 @@ import glob
 import logging.config
 import os
 from logging import getLogger
-from typing import Any, Dict
+from typing import Any, Dict, List
 
+import matplotlib.pyplot as plt
+import seaborn as sns
 import torch
 import torch.nn as nn
 import yaml
@@ -20,17 +22,17 @@ with open('logger_conf.yaml', 'r') as f:
 logger = getLogger(__name__)
 
 
-def load_config(path: str) -> dict:
+def load_config(path: str) -> Dict[str, Any]:
     with open(path, 'r') as f:
         return yaml.load(f, Loader=yaml.FullLoader)
 
 
-def dump_config(path: str, dic: dict):
+def dump_config(path: str, dic: Dict[str, Any]):
     with open(path, 'w') as f:
         yaml.dump(dic, f)
 
 
-def load_text(path: str) -> list:
+def load_text(path: str) -> List[str]:
     with open(path, 'r', encoding='utf-8') as f:
         text = f.read().split('\n')
     return text
@@ -65,13 +67,14 @@ def load_dataset():
 
 if __name__ == '__main__':
     utils.seed_everything()
+    sns.set()
 
     cfg: Dict[str, Any] = load_config('./config.yml')
     logger.info(f'Training configurations: {cfg}')
 
     device: str = 'cuda' if torch.cuda.is_available() else 'cpu'
 
-    model = unet.UNetResNet34(cfg['num_classes'])
+    model = unet.load_model(name=cfg['model'], num_classes=cfg['num_classes'])
     model = model.to(device)
 
     criterion = nn.CrossEntropyLoss()
@@ -82,10 +85,12 @@ if __name__ == '__main__':
         X=X_train, y=y_train, num_classes=cfg['num_classes'],
         img_size=cfg['img_size']
     )
-    train_loader = torch.utils.data.DataLoader(dtrain,
-                                               batch_size=cfg['batch_size'],
-                                               shuffle=True,
-                                               drop_last=True)
+    train_loader = torch.utils.data.DataLoader(
+        dtrain,
+        batch_size=cfg['batch_size'],
+        shuffle=True,
+        drop_last=True
+    )
 
     dvalid = SegmentationDataset(
         X=X_valid, y=y_valid, num_classes=cfg['num_classes'],
@@ -96,10 +101,12 @@ if __name__ == '__main__':
         batch_size=cfg['batch_size']
     )
 
-    optimizer = torch.optim.SGD(model.parameters(),
-                                lr=cfg['max_lr'],
-                                momentum=cfg['momentum'],
-                                weight_decay=cfg['weight_decay'])
+    optimizer = torch.optim.SGD(
+        model.parameters(),
+        lr=cfg['max_lr'],
+        momentum=cfg['momentum'],
+        weight_decay=cfg['weight_decay']
+    )
 
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
         optimizer,
@@ -111,9 +118,13 @@ if __name__ == '__main__':
         model, optimizer, criterion, cfg['num_classes']
     )
     best_loss = 10000.
+    train_losses: List[float] = []
+    valid_losses: List[float] = []
     for epoch in range(1, 1 + cfg['num_epochs']):
         train_loss = trainer.epoch_train(train_loader)
         valid_loss = trainer.epoch_eval(valid_loader)
+        train_losses.append(train_loss)
+        valid_losses.append(valid_loss)
         if valid_loss < best_loss:
             best_loss = valid_loss
             path = os.path.join(
@@ -130,3 +141,9 @@ if __name__ == '__main__':
 
     path = os.path.join('../configs', f'{best_loss}.yml')
     dump_config(path, cfg)
+
+    # Plot losses
+    plt.plot(train_losses, label='train')
+    plt.plot(valid_losses, label='valid')
+    plt.title('Loss curve')
+    plt.savefig('losses.png')
