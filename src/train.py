@@ -1,13 +1,21 @@
 import glob
+import logging.config
 import os
+from logging import getLogger
 
 import torch
 import torch.nn as nn
 import yaml
 
+import unet
 from datasets import SegmentationDataset
 from trainer import SegmentationTrainer
-import unet
+
+with open('logger_conf.yaml', 'r') as f:
+    log_config: Dict[str, Any] = yaml.safe_load(f.read())
+    logging.config.dictConfig(log_config)
+
+logger = getLogger(__name__)
 
 
 def load_config(path: str) -> dict:
@@ -60,7 +68,8 @@ if __name__ == '__main__':
     min_lr = 1e-4
     max_lr = 0.1
 
-    cfg = load_config('./config.yml')
+    cfg: Dict[str, Any] = load_config('./config.yml')
+    logger.info(f'Training configurations: {cfg}')
 
     device: str = 'cuda' if torch.cuda.is_available() else 'cpu'
 
@@ -111,13 +120,8 @@ if __name__ == '__main__':
 
         scheduler.step()
 
-        print(f'EPOCH: [{epoch}/{cfg["num_epochs"]}]')
-        print(f'TRAIN LOSS: {train_loss:.3f}, VALID LOSS: {valid_loss:.3f}')
-
-        path = os.path.join(
-            '../weights', f'loss{valid_loss:.3f}.pth'
-        )
-        torch.save(trainer.weights, path)
+        logger.info(f'EPOCH: [{epoch}/{cfg["num_epochs"]}]')
+        logger.info(f'TRAIN LOSS: {train_loss:.3f}, VALID LOSS: {valid_loss:.3f}')
 
     path = os.path.join('../configs', f'{best_loss}.yml')
     dump_config(path, cfg)
