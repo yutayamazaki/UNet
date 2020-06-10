@@ -1,6 +1,7 @@
 import glob
 import logging.config
 import os
+from datetime import datetime
 from logging import getLogger
 from typing import Any, Dict, List
 
@@ -69,6 +70,13 @@ if __name__ == '__main__':
     utils.seed_everything()
     sns.set()
 
+    # Setup directory that saves the experiment results.
+    dirname: str = datetime.now().strftime('%Y%m%d_%H-%M-%S')
+    save_dir: str = os.path.join('../experiments', dirname)
+    os.makedirs(save_dir, exist_ok=False)
+    weights_dir: str = os.path.join(save_dir, 'weights')
+    os.makedirs(weights_dir, exist_ok=False)
+
     cfg: Dict[str, Any] = load_config('./config.yml')
     logger.info(f'Training configurations: {cfg}')
 
@@ -127,8 +135,10 @@ if __name__ == '__main__':
         valid_losses.append(valid_loss)
         if valid_loss < best_loss:
             best_loss = valid_loss
-            path = os.path.join(
-                '../weights', f'epoch{epoch}_loss{valid_loss:.3f}.pth'
+            model_name: str = cfg['model'].lower()
+            path: str = os.path.join(
+                weights_dir,
+                f'{model_name}_loss{valid_loss:.5f}_epoch{epoch}.pth'
             )
             torch.save(trainer.weights, path)
 
@@ -139,11 +149,11 @@ if __name__ == '__main__':
             f'TRAIN LOSS: {train_loss:.3f}, VALID LOSS: {valid_loss:.3f}'
         )
 
-    path = os.path.join('../configs', f'{best_loss}.yml')
-    dump_config(path, cfg)
+    cfg_path: str = os.path.join(save_dir, 'config.yml')
+    dump_config(cfg_path, cfg)
 
     # Plot losses
     plt.plot(train_losses, label='train')
     plt.plot(valid_losses, label='valid')
     plt.title('Loss curve')
-    plt.savefig('losses.png')
+    plt.savefig(os.path.join(save_dir, 'loss.png'))

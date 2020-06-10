@@ -1,12 +1,10 @@
 # Custom
 .DS_Store
 
-configs/*
-!/configs/.gitkeep
+experiments/*
+!/experiments/.gitkeep
 VOCdevkit/*
 !/VOCdevkit/.gitkeep
-weights/*
-!/weights/.gitkeep
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
