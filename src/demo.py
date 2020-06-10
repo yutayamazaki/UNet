@@ -17,13 +17,13 @@ from train import load_config
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        '--weights_path', type=str, help='使用するモデルの重みのパスを指定'
+        '--weights_path', type=str, help='The weights of trained model.'
     )
     parser.add_argument(
-        '--img_path', type=str, default='demo.jpg', help='推論を行う画像のパスを指定する'
+        '--img_path', type=str, default='demo.jpg', help='Specify the image to predict.'
     )
     parser.add_argument(
-        '--output_path', type=str, default='output.png', help='推論結果のpngを保存するパス'
+        '--output_path', type=str, default='output.png', help='A path to save prediction result.'
     )
     args = parser.parse_args()
 

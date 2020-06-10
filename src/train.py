@@ -84,7 +84,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument(
         '-c', '--config', type=str, default='./config.yml',
-        help='configファイルを指定'
+        help='Specify training config file.'
     )
     args = parser.parse_args()
 
