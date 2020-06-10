@@ -124,7 +124,7 @@ class FPA(nn.Module):
 
     def forward(self, x):
         x_glob = self.glob(x)
-        x_glob = F.upsample(
+        x_glob = F.interpolate(
             x_glob, scale_factor=16, mode='bilinear', align_corners=True
         )
         d2 = self.down2_1(x)
@@ -132,12 +132,12 @@ class FPA(nn.Module):
         d2 = self.down2_2(d2)
         d3 = self.down3_2(d3)
 
-        d3 = F.upsample(
+        d3 = F.interpolate(
             d3, scale_factor=2, mode='bilinear', align_corners=True
         )
         d2 = d2 + d3
 
-        d2 = F.upsample(
+        d2 = F.interpolate(
             d2, scale_factor=2, mode='bilinear', align_corners=True
         )
 
@@ -228,7 +228,7 @@ class Decoder(nn.Module):
 
     def forward(self, x, e=None):
         """ [B, C, H, W] -> [B, C, H*2, W*2] """
-        x = F.upsample(x, scale_factor=2, mode='bilinear', align_corners=True)
+        x = F.interpolate(x, scale_factor=2, mode='bilinear', align_corners=True)
         if e is not None:
             print(f'{x.shape}, {e.shape}')
             x = torch.cat([x, e], 1)
@@ -318,14 +318,14 @@ class UNetResNet34(nn.Module):
         f = torch.cat(
             (
                 d1,
-                F.upsample(d2, scale_factor=2, mode='bilinear',
-                           align_corners=True),
-                F.upsample(d3, scale_factor=4, mode='bilinear',
-                           align_corners=True),
-                F.upsample(d4, scale_factor=8, mode='bilinear',
-                           align_corners=True),
-                F.upsample(d5, scale_factor=16, mode='bilinear',
-                           align_corners=True)
+                F.interpolate(d2, scale_factor=2, mode='bilinear',
+                              align_corners=True),
+                F.interpolate(d3, scale_factor=4, mode='bilinear',
+                              align_corners=True),
+                F.interpolate(d4, scale_factor=8, mode='bilinear',
+                              align_corners=True),
+                F.interpolate(d5, scale_factor=16, mode='bilinear',
+                              align_corners=True)
             ), 1
         )  # [B, 320, H, W]
         logit = self.logit(f)  # [B, num_classes, H, W]
