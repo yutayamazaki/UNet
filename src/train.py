@@ -1,3 +1,4 @@
+import argparse
 import glob
 import logging.config
 import os
@@ -49,19 +50,33 @@ def load_dataset():
     train_images = load_text(train_path)
     valid_images = load_text(valid_path)
 
-    X_train, X_valid = [], []
-    for x in X:
-        if os.path.splitext(os.path.basename(x))[0] in train_images:
-            X_train.append(x)
-        elif os.path.splitext(os.path.basename(x))[0] in valid_images:
-            X_valid.append(x)
+    X_train, y_train = [], []
+    for train_id in train_images:
+        x_path: str = os.path.join(
+            '../VOCdevkit/VOC2012/JPEGImages', f'{train_id}.jpg'
+        )
+        y_path: str = os.path.join(
+            '../VOCdevkit/VOC2012/SegmentationClass', f'{train_id}.png'
+        )
+        x_exists: bool = os.path.exists(x_path)
+        y_exists: bool = os.path.exists(y_path)
+        if x_exists and y_exists:
+            X_train.append(x_path)
+            y_train.append(y_path)
 
-    y_train, y_valid = [], []
-    for i in y:
-        if os.path.splitext(os.path.basename(i))[0] in train_images:
-            y_train.append(i)
-        elif os.path.splitext(os.path.basename(i))[0] in valid_images:
-            y_valid.append(i)
+    X_valid, y_valid = [], []
+    for valid_id in valid_images:
+        x_path: str = os.path.join(
+            '../VOCdevkit/VOC2012/JPEGImages', f'{valid_id}.jpg'
+        )
+        y_path: str = os.path.join(
+            '../VOCdevkit/VOC2012/SegmentationClass', f'{valid_id}.png'
+        )
+        x_exists: bool = os.path.exists(x_path)
+        y_exists: bool = os.path.exists(y_path)
+        if x_exists and y_exists:
+            X_valid.append(x_path)
+            y_valid.append(y_path)
 
     return X_train[:5], X_valid[:5], y_train[:5], y_valid[:5]
 
@@ -70,6 +85,13 @@ if __name__ == '__main__':
     utils.seed_everything()
     sns.set()
 
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        '-c', '--config', type=str, default='./config.yml',
+        help='configファイルを指定'
+    )
+    args = parser.parse_args()
+
     # Setup directory that saves the experiment results.
     dirname: str = datetime.now().strftime('%Y%m%d_%H-%M-%S')
     save_dir: str = os.path.join('../experiments', dirname)
@@ -77,7 +99,7 @@ if __name__ == '__main__':
     weights_dir: str = os.path.join(save_dir, 'weights')
     os.makedirs(weights_dir, exist_ok=False)
 
-    cfg: Dict[str, Any] = load_config('./config.yml')
+    cfg: Dict[str, Any] = load_config(args.config)
     logger.info(f'Training configurations: {cfg}')
 
     device: str = 'cuda' if torch.cuda.is_available() else 'cpu'
@@ -135,10 +157,10 @@ if __name__ == '__main__':
         valid_losses.append(valid_loss)
         if valid_loss < best_loss:
             best_loss = valid_loss
-            model_name: str = cfg['model'].lower()
+            name: str = cfg['model'].lower()
             path: str = os.path.join(
                 weights_dir,
-                f'{model_name}_loss{valid_loss:.5f}_epoch{epoch}.pth'
+                f'{name}_loss{valid_loss:.5f}_epoch{str(epoch).zfill(3)}.pth'
             )
             torch.save(trainer.weights, path)
 
