@@ -1,5 +1,4 @@
 import argparse
-import glob
 import logging.config
 import os
 from datetime import datetime
@@ -41,9 +40,6 @@ def load_text(path: str) -> List[str]:
 
 
 def load_dataset():
-    X = glob.glob('../VOCdevkit/VOC2012/JPEGImages/*')
-    y = glob.glob('../VOCdevkit/VOC2012/SegmentationClass/*')
-
     train_path = '../VOCdevkit/VOC2012/ImageSets/Segmentation/train.txt'
     valid_path = '../VOCdevkit/VOC2012/ImageSets/Segmentation/val.txt'
 
