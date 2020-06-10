@@ -4,7 +4,7 @@
 
 ```shell
 docker build . -t cuda
-docker run -it -v /abs/path/to/semseg-grip-image:/code --gpus all cuda bash
+docker run -it -v /abs/path/to/UNet:/code --gpus all cuda bash
 ```
 ## Download Pascal VOC
 
