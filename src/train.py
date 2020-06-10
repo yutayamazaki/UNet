@@ -7,7 +7,7 @@ import yaml
 
 from datasets import SegmentationDataset
 from trainer import SegmentationTrainer
-from unet import UNet, UNetResNet34
+import unet
 
 
 def load_config(path: str) -> dict:
@@ -62,10 +62,10 @@ if __name__ == '__main__':
 
     cfg = load_config('./config.yml')
 
-    device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    device: str = 'cuda' if torch.cuda.is_available() else 'cpu'
 
-    model = UNetResNet34(cfg['num_classes'])
-    # model = UNet(in_channels=3, num_classes=cfg['num_classes'])
+    model = unet.UNetResNet34(cfg['num_classes'])
+    # model = unet.UNet(in_channels=3, num_classes=cfg['num_classes'])
     model = model.to(device)
 
     criterion = nn.CrossEntropyLoss()

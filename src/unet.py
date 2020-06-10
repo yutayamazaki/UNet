@@ -228,7 +228,9 @@ class Decoder(nn.Module):
 
     def forward(self, x, e=None):
         """ [B, C, H, W] -> [B, C, H*2, W*2] """
-        x = F.interpolate(x, scale_factor=2, mode='bilinear', align_corners=True)
+        x = F.interpolate(
+            x, scale_factor=2, mode='bilinear', align_corners=True
+        )
         if e is not None:
             print(f'{x.shape}, {e.shape}')
             x = torch.cat([x, e], 1)
