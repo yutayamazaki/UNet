@@ -9,6 +9,7 @@ import torch.nn as nn
 import yaml
 
 import unet
+import utils
 from datasets import SegmentationDataset
 from trainer import SegmentationTrainer
 
@@ -63,6 +64,8 @@ def load_dataset():
 
 
 if __name__ == '__main__':
+    utils.seed_everything()
+
     cfg: Dict[str, Any] = load_config('./config.yml')
     logger.info(f'Training configurations: {cfg}')
 
