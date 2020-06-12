@@ -1,48 +1,85 @@
+from typing import List
+
 import numpy as np
 import torch
 
 
-def intersection_and_union(preds: torch.Tensor, labels: torch.Tensor,
-                           ignore_index=255, num_classes=19):
+def intersection_and_union(
+    y_true: torch.Tensor, y_pred: torch.Tensor,
+    num_classes: int, ignore_index: int = 255
+):
+    """Calculate intersection and union for given labels and predictions.
+    Args:
+        y_true (torch.Tensor): Ground truth.
+        y_pred (torch.Tensor): Predictions.
+        num_classes (int): A unmber of unique classes.
+        ignore_index (int): Specify value which ignore like background.
 
+    Returns:
+        tuple: A tuple of intersection and union.
+    """
     assert ignore_index > num_classes, \
-        'ignore_index should be grater than n_classes'
+        'ignore_index should be grater than num_classes.'
+    assert y_true.size() == y_pred.size(), \
+        'Shape of y_true and y_pred must be same.'
 
-    preds = preds.byte().flatten()
-    labels = labels.byte().flatten()
+    y_pred = y_pred.byte().flatten()
+    y_true = y_true.byte().flatten()
 
-    is_not_ignore = labels != ignore_index
-    preds = preds[is_not_ignore]
-    labels = labels[is_not_ignore]
+    # Ignore specified index.
+    is_not_ignore = y_true != ignore_index
+    y_pred = y_pred[is_not_ignore]
+    y_true = y_true[is_not_ignore]
 
-    intersection = preds[preds == labels]
+    intersection = y_pred[y_pred == y_true]
     area_intersection = intersection.bincount(minlength=num_classes)
 
-    bincount_preds = preds.bincount(minlength=num_classes)
-    bincount_labels = labels.bincount(minlength=num_classes)
+    bincount_pred = y_pred.bincount(minlength=num_classes)
+    bincount_true = y_true.bincount(minlength=num_classes)
 
-    area_union = bincount_preds + bincount_labels - area_intersection
-
+    area_union = bincount_pred + bincount_true - area_intersection
     area_intersection = area_intersection.float().cpu().numpy()
     area_union = area_union.float().cpu().numpy()
 
     return area_intersection, area_union
 
 
-def mean_iou(outputs, labels, num_classes=19):
-    """ Calculate IoU for torch.Tensor
+def mean_intersection_over_union(
+    y_true: torch.Tensor,
+    y_pred: torch.Tensor,
+    num_classes: int
+) -> float:
+    """Return IoU metric average over classes.
     Args:
-    outputs (torch.Tensor): Predicted tensor with size (B*H*W, NumClasses).
-
-    labels (torch.Tensor): Truth label with size (B*H*W).
-
+        y_true (torch.Tensor): With shape (B, H, W).
+        y_pred (torch.Tensor): With shape (B, num_classes, H, W).
+        num_classes (int): A number of  unique classes.
     Returns:
-        np.float: Calclated IoU metric.
+        float: Mean IoU.
     """
-    preds = outputs.argmax(dim=1)
-    labels = labels
+    y_pred = y_pred.argmax(dim=1)
     intersection, union = intersection_and_union(
-        preds, labels, num_classes=num_classes
+        y_true=y_true, y_pred=y_pred, num_classes=num_classes
     )
+    mean_iou: np.foat32 = np.mean(intersection / (union + 1e-16))
+    return float(mean_iou)
 
-    return np.mean(intersection / (union + 1e-16))
+
+def intersection_over_union(
+    y_true: torch.Tensor,
+    y_pred: torch.Tensor,
+    num_classes: int
+) -> List[float]:
+    """Return IoU metric of each classes.
+    Args:
+        y_true (torch.Tensor): With shape (B, H, W).
+        y_pred (torch.Tensor): With shape (B, num_classes, H, W).
+        num_classes (int): A number of  unique classes.
+    Returns:
+        list: A list of float for each classes.
+    """
+    y_pred = y_pred.argmax(dim=1)
+    intersection, union = intersection_and_union(
+        y_true=y_true, y_pred=y_pred, num_classes=num_classes
+    )
+    return [float(iou) for iou in intersection / (union + 1e-16)]

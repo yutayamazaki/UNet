@@ -16,12 +16,6 @@ import utils
 from datasets import SegmentationDataset
 from trainer import SegmentationTrainer
 
-with open('logger_conf.yaml', 'r') as f:
-    log_config: Dict[str, Any] = yaml.safe_load(f.read())
-    logging.config.dictConfig(log_config)
-
-logger = getLogger(__name__)
-
 
 def load_config(path: str) -> Dict[str, Any]:
     with open(path, 'r') as f:
@@ -80,6 +74,12 @@ def load_dataset():
 if __name__ == '__main__':
     utils.seed_everything()
     sns.set()
+
+    with open('logger_conf.yaml', 'r') as f:
+        log_config: Dict[str, Any] = yaml.safe_load(f.read())
+        logging.config.dictConfig(log_config)
+
+    logger = getLogger(__name__)
 
     parser = argparse.ArgumentParser()
     parser.add_argument(
