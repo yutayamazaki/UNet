@@ -20,10 +20,12 @@ if __name__ == '__main__':
         '--weights_path', type=str, help='The weights of trained model.'
     )
     parser.add_argument(
-        '--img_path', type=str, default='demo.jpg', help='Specify the image to predict.'
+        '--img_path', type=str, default='demo.jpg',
+        help='Specify the image to predict.'
     )
     parser.add_argument(
-        '--output_path', type=str, default='output.png', help='A path to save prediction result.'
+        '--output_path', type=str, default='output.png',
+        help='A path to save prediction result.'
     )
     args = parser.parse_args()
 
