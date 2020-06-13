@@ -147,8 +147,8 @@ if __name__ == '__main__':
     train_losses: List[float] = []
     valid_losses: List[float] = []
     for epoch in range(1, 1 + cfg['num_epochs']):
-        train_loss = trainer.epoch_train(train_loader)
-        valid_loss = trainer.epoch_eval(valid_loader)
+        train_loss, train_iou = trainer.epoch_train(train_loader)
+        valid_loss, valid_iou = trainer.epoch_eval(valid_loader)
         train_losses.append(train_loss)
         valid_losses.append(valid_loss)
         if valid_loss < best_loss:
@@ -160,11 +160,14 @@ if __name__ == '__main__':
             )
             torch.save(trainer.weights, path)
 
-        scheduler.step()
+        # scheduler.step()
 
         logger.info(f'EPOCH: [{epoch}/{cfg["num_epochs"]}]')
         logger.info(
-            f'TRAIN LOSS: {train_loss:.3f}, VALID LOSS: {valid_loss:.3f}'
+            f'TRAIN LOSS: {train_loss:.8f}, VALID LOSS: {valid_loss:.8f}'
+        )
+        logger.info(
+            f'TRAIN mIoU: {train_iou:.8f}, VALID mIoU: {valid_iou:.8f}'
         )
 
     cfg_path: str = os.path.join(save_dir, 'config.yml')

@@ -1,5 +1,9 @@
+from typing import List, Tuple
+
 import torch
 from torch.autograd._functions import Resize
+
+from metrics import mean_intersection_over_union
 
 
 class AbstractTrainer:
@@ -25,9 +29,10 @@ class AbstractTrainer:
 
 class SegmentationTrainer(AbstractTrainer):
 
-    def epoch_train(self, train_loader):
+    def epoch_train(self, train_loader) -> Tuple[float, float]:
         self._model.train()
-        epoch_loss = 0.
+        epoch_loss: float = 0.
+        iou_list: List[float] = []
         for inputs, targets in train_loader:
             inputs = inputs.to(self.device)
             targets = targets.to(self.device)
@@ -39,9 +44,10 @@ class SegmentationTrainer(AbstractTrainer):
             outputs = Resize.apply(outputs, (b*h*w, self.num_classes))
             targets = targets.reshape(-1)
 
-            # Got deprecated warnings.
-            # outputs = outputs.resize(b*h*w, self.num_classes)
-            # targets = targets.resize(b*h*w)
+            m_iou = mean_intersection_over_union(
+                y_true=targets, y_pred=outputs, num_classes=self.num_classes
+            )
+            iou_list.append(m_iou)
 
             loss = self.criterion(outputs, targets)
 
@@ -50,11 +56,14 @@ class SegmentationTrainer(AbstractTrainer):
             self.optimizer.step()
             self.optimizer.zero_grad()
 
-        return epoch_loss / len(train_loader)
+        mean_loss: float = epoch_loss / len(train_loader)
+        mean_iou: float = sum(iou_list) / len(train_loader)
+        return mean_loss, mean_iou
 
-    def epoch_eval(self, eval_loader):
+    def epoch_eval(self, eval_loader) -> Tuple[float, float]:
         self._model.eval()
-        epoch_loss = 0.
+        epoch_loss: float = 0.
+        iou_list: List[float] = []
         for inputs, targets in eval_loader:
             inputs = inputs.to(self.device)
             targets = targets.to(self.device)
@@ -67,12 +76,15 @@ class SegmentationTrainer(AbstractTrainer):
             outputs = Resize.apply(outputs, (b*h*w, self.num_classes))
             targets = targets.reshape(-1)
 
-            # Got deprecated warnings.
-            # outputs = outputs.resize(b*h*w, self.num_classes)
-            # targets = targets.resize(b*h*w)
+            m_iou = mean_intersection_over_union(
+                y_true=targets, y_pred=outputs, num_classes=self.num_classes
+            )
+            iou_list.append(m_iou)
 
             loss = self.criterion(outputs, targets)
 
             epoch_loss += loss.item()
 
-        return epoch_loss / len(eval_loader)
+        mean_loss: float = epoch_loss / len(eval_loader)
+        mean_iou: float = sum(iou_list) / len(eval_loader)
+        return mean_loss, mean_iou

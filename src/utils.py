@@ -1,6 +1,6 @@
 import os
 import random
-from typing import Dict, List, Tuple
+from typing import List, Tuple
 
 import numpy as np
 import torch
@@ -20,10 +20,9 @@ def load_labelmap(path: str) -> List[Tuple[str, Tuple[int]]]:
         for line in f:
             if line[0] == '#':  # comment out
                 continue
-            data_list: List[str] = line.split(':')
-            label, cmap, _, _ = line.split(':')
-            class_name: str = data_list[0]
-            cmap: Tuple[int] = tuple([int(c) for c in data_list[1].split(',')])
+            class_name, cmap_str, _, _ = line.split(':')
+            cmap: Tuple[int] = \
+                tuple([int(c) for c in cmap_str.split(',')])  # type: ignore
 
             color_maps.append((class_name, cmap))
     return color_maps
@@ -43,7 +42,7 @@ def create_segmentation_result(
                     (Height, Width, 3).
     """
     _, h, w = img.shape
-    shape: Tuple[int] = (h, w, 3)
+    shape: Tuple[int] = (h, w, 3)  # type: ignore
     result_image: np.ndarray = np.zeros(shape)
 
     img_2d: np.ndarray = np.argmax(img, axis=0)
@@ -69,24 +68,5 @@ def seed_everything(seed: int = 1234):
     os.environ['PYTHONHASHSEED'] = str(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)
-    torch.cuda.manual_seed(seed)
-    torch.backends.cudnn.deterministic = True
-
-
-if __name__ == '__main__':
-    from unet import UNet, UNetResNet34
-    color_maps: Dict[str, Tuple[int]] = load_labelmap(
-        '../VOCDataset/labelmap.txt'
-    )
-    print(color_maps)
-
-    simple_unet: nn.Module = UNet(in_channels=3, num_classes=5)
-    resnet_unet: nn.Module = UNetResNet34(num_classes=5)
-
-    num_params_unet: int = count_parameters(simple_unet)
-    num_params_resunet: int = count_parameters(resnet_unet)
-
-    print(f'Number of parameters in unet.UNet is: {num_params_unet}')
-    print(
-        f'Number of parameters in unet.UNetResNet34 is: {num_params_resunet}'
-    )
+    torch.cuda.manual_seed(seed)  # type: ignore
+    torch.backends.cudnn.deterministic = True  # type: ignore

@@ -1,14 +1,14 @@
 import os
 
+import torchvision
 from PIL import Image
 from PIL import ImageFile
-import torch
-import torchvision
+from torch.utils.data import Dataset
 
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 
-class SegmentationDataset(torch.utils.data.Dataset):
+class SegmentationDataset(Dataset):
     """ PyTorch Dataset for Semnatic Segmentation.
     Parameters
     ----------

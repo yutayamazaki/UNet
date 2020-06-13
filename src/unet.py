@@ -343,12 +343,3 @@ def load_model(name: str, num_classes: int) -> nn.Module:
         return UNetResNet34(num_classes=num_classes)
     else:
         raise ValueError('Argument [name] must be "UNet" or "UNetResNet34".')
-
-
-if __name__ == '__main__':
-    x = torch.zeros((2, 3, 256, 256))
-
-    model = UNet(3, 10)
-    print(model(x).size())
-    model = UNetResNet34(num_classes=10)
-    print(model(x).size())

@@ -1,5 +1,6 @@
 # devDependencies
 flake8
+mypy
 
 joblib==0.14.1
 matplotlib==3.2.1
