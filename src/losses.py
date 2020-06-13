@@ -13,7 +13,7 @@ class FocalLoss(nn.Module):
         super(FocalLoss, self).__init__()
         self.gamma: float = gamma
         self.size_average: bool = size_average
-        self.cross_entropy = nn.CrossEntropyLoss()
+        self.cross_entropy = nn.CrossEntropyLoss(reduction='none')
 
     def forward(  # type: ignore
         self,
