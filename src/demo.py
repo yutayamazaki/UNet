@@ -11,7 +11,7 @@ from PIL import Image
 
 import unet
 import utils
-from train import load_config
+from run_train import load_config
 
 
 if __name__ == '__main__':

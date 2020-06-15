@@ -146,11 +146,21 @@ if __name__ == '__main__':
     best_loss = 10000.
     train_losses: List[float] = []
     valid_losses: List[float] = []
+    metrics: Dict[str, List[float]] = {
+        'train_loss': [],
+        'valid_loss': [],
+        'train_iou': [],
+        'valid_iou': []
+    }
     for epoch in range(1, 1 + cfg['num_epochs']):
         train_loss, train_iou = trainer.epoch_train(train_loader)
         valid_loss, valid_iou = trainer.epoch_eval(valid_loader)
-        train_losses.append(train_loss)
-        valid_losses.append(valid_loss)
+
+        metrics['train_loss'].append(train_loss)
+        metrics['valid_loss'].append(valid_loss)
+        metrics['train_iou'].append(train_iou)
+        metrics['valid_iou'].append(valid_iou)
+
         if valid_loss < best_loss:
             best_loss = valid_loss
             name: str = cfg['model'].lower()
@@ -173,8 +183,16 @@ if __name__ == '__main__':
     cfg_path: str = os.path.join(save_dir, 'config.yml')
     dump_config(cfg_path, cfg)
 
-    # Plot losses
-    plt.plot(train_losses, label='train')
-    plt.plot(valid_losses, label='valid')
+    # Plot metrics
+    plt.plot(metrics['train_loss'], label='train')
+    plt.plot(metrics['valid_loss'], label='valid')
     plt.title('Loss curve')
+    plt.legend()
     plt.savefig(os.path.join(save_dir, 'loss.png'))
+    plt.clf()
+
+    plt.plot(metrics['train_iou'], label='train')
+    plt.plot(metrics['valid_iou'], label='valid')
+    plt.title('mIoU curve')
+    plt.legend()
+    plt.savefig(os.path.join(save_dir, 'mIoU.png'))
