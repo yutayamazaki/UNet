@@ -1,7 +1,5 @@
 import argparse
 import logging.config
-import os
-from datetime import datetime
 from logging import getLogger
 from typing import Any, Dict, List, Tuple
 
