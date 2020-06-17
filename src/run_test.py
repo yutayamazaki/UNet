@@ -39,13 +39,6 @@ if __name__ == '__main__':
     )
     args = parser.parse_args()
 
-    # Setup directory that saves the experiment results.
-    dirname: str = datetime.now().strftime('%Y%m%d_%H-%M-%S')
-    save_dir: str = os.path.join('../experiments', dirname)
-    os.makedirs(save_dir, exist_ok=False)
-    weights_dir: str = os.path.join(save_dir, 'weights')
-    os.makedirs(weights_dir, exist_ok=False)
-
     cfg: Dict[str, Any] = load_config(args.config)
     device: str = 'cuda' if torch.cuda.is_available() else 'cpu'
 
