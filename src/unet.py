@@ -6,7 +6,7 @@ import torch.nn.functional as F
 import torchvision
 
 
-def conv_relu(in_channels, out_channels):
+def conv_relu(in_channels: int, out_channels: int) -> nn.Module:
     return nn.Sequential(
                nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1),
                nn.BatchNorm2d(out_channels),
@@ -16,7 +16,7 @@ def conv_relu(in_channels, out_channels):
 
 class DownBlock(nn.Module):
 
-    def __init__(self, in_channels, out_channels):
+    def __init__(self, in_channels: int, out_channels: int):
         super(DownBlock, self).__init__()
         self.maxpool = nn.MaxPool2d(kernel_size=2)
         self.conv1 = conv_relu(in_channels, out_channels)
@@ -31,21 +31,22 @@ class DownBlock(nn.Module):
 
 class UpBlock(nn.Module):
 
-    def __init__(self, in_channels, out_channels):
+    def __init__(self, in_channels: int, out_channels: int):
         super(UpBlock, self).__init__()
-        self.up = nn.Upsample(scale_factor=2, mode='bilinear',
-                              align_corners=True)
+        self.up = nn.Upsample(
+            scale_factor=2, mode='bilinear', align_corners=True
+        )
         self.conv1 = conv_relu(in_channels, out_channels)
         self.conv2 = conv_relu(out_channels, out_channels)
 
     def forward(self, x1, x2):
         x1 = self.up(x1)
 
-        diffY = x2.size()[2] - x1.size()[2]
-        diffX = x2.size()[3] - x1.size()[3]
+        diff_y = x2.size()[2] - x1.size()[2]
+        diff_x = x2.size()[3] - x1.size()[3]
 
-        x1 = F.pad(x1, (diffX // 2, diffX - diffX//2,
-                        diffY // 2, diffY - diffY//2))
+        x1 = F.pad(x1, (diff_x // 2, diff_x - diff_x//2,
+                        diff_y // 2, diff_y - diff_y//2))
         x = torch.cat([x2, x1], dim=1)
         x = self.conv1(x)
         x = self.conv2(x)
@@ -53,8 +54,9 @@ class UpBlock(nn.Module):
 
 
 class UNet(nn.Module):
+    """Original UNet implementation: https://arxiv.org/abs/1505.04597"""
 
-    def __init__(self, in_channels, num_classes):
+    def __init__(self, in_channels: int, num_classes: int):
         super(UNet, self).__init__()
         self.in_conv = conv_relu(in_channels, 64)
         self.out_conv = conv_relu(64, num_classes)
@@ -87,7 +89,7 @@ class UNet(nn.Module):
 
 class FPA(nn.Module):
 
-    def __init__(self, in_channels, out_channels):
+    def __init__(self, in_channels: int, out_channels: int):
         super(FPA, self).__init__()
         self.glob = nn.Sequential(
             nn.AdaptiveAvgPool2d(1),
@@ -149,16 +151,16 @@ class FPA(nn.Module):
         return x
 
 
-class sSE(nn.Module):
+class SSE(nn.Module):
 
-    """ Implementation of 'Channel Squeeze and spatial excitation; sSE'.
+    """ Implementation of 'Channel Squeeze and spatial excitation; SSE'.
     Note:
         https://arxiv.org/abs/1709.01507
     """
 
-    def __init__(self, in_channel):
-        super(sSE, self).__init__()
-        self.squeeze = nn.Conv2d(in_channel, 1, kernel_size=1, bias=False)
+    def __init__(self, in_channels: int):
+        super(SSE, self).__init__()
+        self.squeeze = nn.Conv2d(in_channels, 1, kernel_size=1, bias=False)
 
     def forward(self, x):
         """ [B, C, H, W] -> [B, C, H, W] """
@@ -166,15 +168,15 @@ class sSE(nn.Module):
         return x * torch.sigmoid(sq)
 
 
-class cSE(nn.Module):
+class CSE(nn.Module):
 
-    """ Implementation of 'Spatial squeeze and Channel Excitation; cSE'.
+    """ Implementation of 'Spatial squeeze and Channel Excitation; CSE'.
     Note:
         https://arxiv.org/abs/1803.02579
     """
 
-    def __init__(self, in_channels, reduction=4):
-        super(cSE, self).__init__()
+    def __init__(self, in_channels: int, reduction: int = 4):
+        super(CSE, self).__init__()
         self.gap = nn.AdaptiveAvgPool2d(1)
         self.conv1 = nn.Conv2d(
             in_channels, in_channels // reduction, kernel_size=1, stride=1
@@ -192,41 +194,42 @@ class cSE(nn.Module):
         return x * sq_scaled
 
 
-class scSE(nn.Module):
+class SCSE(nn.Module):
 
-    """ Implementation of scSE module.
+    """ Implementation of SCSE module.
     Note:
         https://arxiv.org/abs/1803.02579
     """
 
-    def __init__(self, in_channels):
-        super(scSE, self).__init__()
-        self.spatial_att = sSE(in_channels)
-        self.channel_att = cSE(in_channels)
+    def __init__(self, in_channels: int):
+        super(SCSE, self).__init__()
+        self.spatial_att = SSE(in_channels)
+        self.channel_att = CSE(in_channels)
 
     def forward(self, x):
         """ [B, C, H, W] -> [B, C, H, W] """
         return self.spatial_att(x) + self.channel_att(x)
 
 
-def conv3x3(input_dim, output_dim, rate=1):
-    conv = nn.Sequential(
-        nn.Conv2d(input_dim, output_dim, kernel_size=3, dilation=rate,
-                  padding=rate, bias=False),
+def conv3x3(input_dim: int, output_dim: int, rate: int = 1) -> nn.Module:
+    return nn.Sequential(
+        nn.Conv2d(
+            input_dim, output_dim, kernel_size=3, dilation=rate,
+            padding=rate, bias=False
+        ),
         nn.BatchNorm2d(output_dim),
         nn.ReLU(True)
     )
-    return conv
 
 
 class Decoder(nn.Module):
 
-    def __init__(self, in_channels, channels, out_channels):
+    def __init__(self, in_channels: int, channels: int, out_channels: int):
         super(Decoder, self).__init__()
         self.conv1 = conv3x3(in_channels, channels)
         self.conv2 = conv3x3(channels, out_channels)
-        self.s_att = sSE(out_channels)
-        self.c_att = cSE(out_channels, 16)
+        self.s_att = SSE(out_channels)
+        self.c_att = CSE(out_channels, 16)
 
     def forward(self, x, e=None):
         """ [B, C, H, W] -> [B, C, H*2, W*2] """
@@ -234,9 +237,7 @@ class Decoder(nn.Module):
             x, scale_factor=2, mode='bilinear', align_corners=True
         )
         if e is not None:
-            print(f'{x.shape}, {e.shape}')
             x = torch.cat([x, e], 1)
-            print(f'{x.shape, {e.shape}}')
         x = self.conv1(x)
         x = self.conv2(x)
         s = self.s_att(x)
@@ -247,15 +248,15 @@ class Decoder(nn.Module):
 
 class Decoderv2(nn.Module):
 
-    def __init__(self, up_in, x_in, n_out):
+    def __init__(self, up_in: int, x_in: int, n_out: int):
         super(Decoderv2, self).__init__()
         up_out = x_out = n_out // 2
         self.x_conv = nn.Conv2d(x_in, x_out, 1, bias=False)
         self.tr_conv = nn.ConvTranspose2d(up_in, up_out, 2, stride=2)
         self.bn = nn.BatchNorm2d(n_out)
-        self.relu = nn.ReLU(True)
-        self.s_att = sSE(n_out)
-        self.c_att = cSE(n_out, 16)
+        self.relu = nn.ReLU(inplace=True)
+        self.s_att = SSE(n_out)
+        self.c_att = CSE(n_out, 16)
 
     def forward(self, x, e):
         """ [B, C, H, W] -> [B, C, H*2, W*2] """
@@ -273,7 +274,7 @@ class UNetResNet34(nn.Module):
 
     def __init__(self, num_classes: int):
         super(UNetResNet34, self).__init__()
-        resnet = torchvision.models.resnet34(True)
+        resnet = torchvision.models.resnet34(pretrained=True)
 
         self.conv1 = nn.Sequential(
             resnet.conv1,
@@ -281,10 +282,10 @@ class UNetResNet34(nn.Module):
             resnet.relu
         )
 
-        self.encode2 = nn.Sequential(resnet.layer1, scSE(64))
-        self.encode3 = nn.Sequential(resnet.layer2, scSE(128))
-        self.encode4 = nn.Sequential(resnet.layer3, scSE(256))
-        self.encode5 = nn.Sequential(resnet.layer4, scSE(512))
+        self.encode2 = nn.Sequential(resnet.layer1, SCSE(64))
+        self.encode3 = nn.Sequential(resnet.layer2, SCSE(128))
+        self.encode4 = nn.Sequential(resnet.layer3, SCSE(256))
+        self.encode5 = nn.Sequential(resnet.layer4, SCSE(512))
 
         self.center = nn.Sequential(
             FPA(512, 256),
@@ -362,9 +363,10 @@ class UNetResNet(nn.Module):
         super(UNetResNet, self).__init__()
         resnet: nn.Module = _load_resnet_backbone(backbone, pretrained)
 
-        num_channels: List[int] = self._params_bottleneck_block()
+        # Number of feature maps
+        num_channels: List[int] = [256, 512, 1024, 2048]
         if backbone in ('resnet18', 'resnet34'):
-            num_channels = self._params_basic_block()
+            num_channels = [64, 128, 256, 512]
 
         self.backbone = backbone
 
@@ -375,16 +377,16 @@ class UNetResNet(nn.Module):
         )
 
         self.encode2 = nn.Sequential(
-            resnet.layer1, scSE(in_channels=num_channels[0])  # type: ignore
+            resnet.layer1, SCSE(in_channels=num_channels[0])  # type: ignore
         )
         self.encode3 = nn.Sequential(
-            resnet.layer2, scSE(in_channels=num_channels[1])  # type: ignore
+            resnet.layer2, SCSE(in_channels=num_channels[1])  # type: ignore
         )
         self.encode4 = nn.Sequential(
-            resnet.layer3, scSE(in_channels=num_channels[2])  # type: ignore
+            resnet.layer3, SCSE(in_channels=num_channels[2])  # type: ignore
         )
         self.encode5 = nn.Sequential(
-            resnet.layer4, scSE(in_channels=num_channels[3])  # type: ignore
+            resnet.layer4, SCSE(in_channels=num_channels[3])  # type: ignore
         )
 
         self.center = nn.Sequential(
@@ -403,20 +405,6 @@ class UNetResNet(nn.Module):
             nn.ReLU(True),
             nn.Conv2d(64, num_classes, kernel_size=1, bias=False)
         )
-
-    @staticmethod
-    def _params_basic_block() -> List[int]:
-        """Return numbers of feature maps used in resnet18 and resnet34."""
-        return [64, 128, 256, 512]
-
-    @staticmethod
-    def _params_bottleneck_block() -> List[int]:
-        """Return numbers of feature maps used in resnet50, 101, 152."""
-        return [256, 512, 1024, 2048]
-
-    def _get_model_name(self) -> str:
-        """Return numbers of feature maps used in resnet50, 101, 152."""
-        return f'unet_{self.backbone}'
 
     def forward(self, x):
         """ (B, C, H, W) -> (B, num_classes, H, W) """
