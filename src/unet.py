@@ -1,3 +1,5 @@
+from typing import List
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -310,6 +312,121 @@ class UNetResNet34(nn.Module):
         e5 = self.encode5(e4)  # [B, 512, H/16, W/16]
 
         f = self.center(e5)  # [B, 256, H/32, W/32]
+
+        d5 = self.decode5(f, e5)  # [B, 64, H/16, W/16]
+        d4 = self.decode4(d5, e4)  # [B, 64, H/8, W/8]
+        d3 = self.decode3(d4, e3)  # [B, 64, H/4, W/4]
+        d2 = self.decode2(d3, e2)  # [B, 64, H/2, W/2]
+        d1 = self.decode1(d2)  # [B, 256, H, W]
+
+        f = torch.cat(
+            (
+                d1,
+                F.interpolate(d2, scale_factor=2, mode='bilinear',
+                              align_corners=True),
+                F.interpolate(d3, scale_factor=4, mode='bilinear',
+                              align_corners=True),
+                F.interpolate(d4, scale_factor=8, mode='bilinear',
+                              align_corners=True),
+                F.interpolate(d5, scale_factor=16, mode='bilinear',
+                              align_corners=True)
+            ), 1
+        )  # [B, 320, H, W]
+        logit = self.logit(f)  # [B, num_classes, H, W]
+        return logit
+
+
+def _load_resnet_backbone(
+    backbone: str = 'resnet18', pretrained: bool = True
+) -> nn.Module:
+    if backbone == 'resnet18':
+        return torchvision.models.resnet18(pretrained)
+    elif backbone == 'resnet34':
+        return torchvision.models.resnet34(pretrained)
+    elif backbone == 'resnet50':
+        return torchvision.models.resnet50(pretrained)
+    elif backbone == 'resnet101':
+        return torchvision.models.resnet101(pretrained)
+    elif backbone == 'resnet152':
+        return torchvision.models.resnet152(pretrained)
+    else:
+        raise ValueError('backbone must be resnet18, 34, 50, 101, 152.')
+
+
+class UNetResNet(nn.Module):
+
+    def __init__(
+        self, num_classes: int, backbone: str = 'resnet18',
+        pretrained: bool = True
+    ):
+        super(UNetResNet, self).__init__()
+        resnet: nn.Module = _load_resnet_backbone(backbone, pretrained)
+
+        num_channels: List[int] = self._params_bottleneck_block()
+        if backbone in ('resnet18', 'resnet34'):
+            num_channels = self._params_basic_block()
+
+        self.backbone = backbone
+
+        self.conv1 = nn.Sequential(
+            resnet.conv1,  # type: ignore
+            resnet.bn1,  # type: ignore
+            resnet.relu  # type: ignore
+        )
+
+        self.encode2 = nn.Sequential(
+            resnet.layer1, scSE(in_channels=num_channels[0])  # type: ignore
+        )
+        self.encode3 = nn.Sequential(
+            resnet.layer2, scSE(in_channels=num_channels[1])  # type: ignore
+        )
+        self.encode4 = nn.Sequential(
+            resnet.layer3, scSE(in_channels=num_channels[2])  # type: ignore
+        )
+        self.encode5 = nn.Sequential(
+            resnet.layer4, scSE(in_channels=num_channels[3])  # type: ignore
+        )
+
+        self.center = nn.Sequential(
+            FPA(in_channels=num_channels[3], out_channels=num_channels[2]),
+            nn.MaxPool2d(kernel_size=2, stride=2)
+        )
+
+        self.decode5 = Decoderv2(num_channels[2], num_channels[3], 64)
+        self.decode4 = Decoderv2(64, num_channels[2], 64)
+        self.decode3 = Decoderv2(64, num_channels[1], 64)
+        self.decode2 = Decoderv2(64, num_channels[0], 64)
+        self.decode1 = Decoder(64, 32, 64)
+
+        self.logit = nn.Sequential(
+            nn.Conv2d(320, 64, kernel_size=3, padding=1),
+            nn.ReLU(True),
+            nn.Conv2d(64, num_classes, kernel_size=1, bias=False)
+        )
+
+    @staticmethod
+    def _params_basic_block() -> List[int]:
+        """Return numbers of feature maps used in resnet18 and resnet34."""
+        return [64, 128, 256, 512]
+
+    @staticmethod
+    def _params_bottleneck_block() -> List[int]:
+        """Return numbers of feature maps used in resnet50, 101, 152."""
+        return [256, 512, 1024, 2048]
+
+    def _get_model_name(self) -> str:
+        """Return numbers of feature maps used in resnet50, 101, 152."""
+        return f'unet_{self.backbone}'
+
+    def forward(self, x):
+        """ (B, C, H, W) -> (B, num_classes, H, W) """
+        x = self.conv1(x)  # (B, 64, H/2, W/2)
+        e2 = self.encode2(x)  # (B, 256, H/2, W/2)
+        e3 = self.encode3(e2)  # (B, 512, H/4, W/4)
+        e4 = self.encode4(e3)  # (B, 1024, H/8, W/8)
+        e5 = self.encode5(e4)  # (B, 2048, H/16, W/16)
+
+        f = self.center(e5)  # (B, 1024, H/32, W/32)
 
         d5 = self.decode5(f, e5)  # [B, 64, H/16, W/16]
         d4 = self.decode4(d5, e4)  # [B, 64, H/8, W/8]
