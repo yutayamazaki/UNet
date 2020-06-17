@@ -17,14 +17,14 @@ from run_train import load_config
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        '--weights', type=str, help='The weights of trained model.'
+        '-w', '--weights', type=str, help='The weights of trained model.'
     )
     parser.add_argument(
-        '--image', type=str, default='demo.jpg',
+        '-i', '--image', type=str, default='demo.jpg',
         help='Specify the image to predict.'
     )
     parser.add_argument(
-        '--output', type=str, default='output.png',
+        '-o', '--output', type=str, default='output.png',
         help='A path to save prediction result.'
     )
     args = parser.parse_args()

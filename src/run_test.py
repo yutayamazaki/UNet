@@ -1,0 +1,108 @@
+import argparse
+import logging.config
+import os
+from datetime import datetime
+from logging import getLogger
+from typing import Any, Dict, List, Tuple
+
+import torch
+import torch.nn as nn
+import yaml
+from torch.autograd._functions import Resize
+from tqdm import tqdm
+
+import metrics
+import unet
+import utils
+from datasets import SegmentationDataset
+from run_train import load_config, load_dataset
+
+
+if __name__ == '__main__':
+    utils.seed_everything()
+
+    with open('logger_conf.yaml', 'r') as f:
+        log_config: Dict[str, Any] = yaml.safe_load(f.read())
+        logging.config.dictConfig(log_config)
+
+    logger = getLogger(__name__)
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        '-c', '--config', type=str, default='./config.yml',
+        help='configファイルを指定'
+    )
+    parser.add_argument(
+        '-w', '--weights_path', type=str,
+        default='../weights/unetresnet34_loss0.004_epoch198.pth',
+        help='使用するモデルの重みのパスを指定'
+    )
+    args = parser.parse_args()
+
+    # Setup directory that saves the experiment results.
+    dirname: str = datetime.now().strftime('%Y%m%d_%H-%M-%S')
+    save_dir: str = os.path.join('../experiments', dirname)
+    os.makedirs(save_dir, exist_ok=False)
+    weights_dir: str = os.path.join(save_dir, 'weights')
+    os.makedirs(weights_dir, exist_ok=False)
+
+    cfg: Dict[str, Any] = load_config(args.config)
+    device: str = 'cuda' if torch.cuda.is_available() else 'cpu'
+
+    model: nn.Module = unet.load_model(
+        name=cfg['model'], num_classes=cfg['num_classes']
+    )
+    model.load_state_dict(torch.load(args.weights_path, map_location=device))
+    model.eval()
+    model = model.to(device)
+
+    logger.info(f'Configurations: {cfg}')
+
+    criterion = nn.CrossEntropyLoss()
+
+    _, _, X_test, _, _, y_test = load_dataset()
+
+    dtest = SegmentationDataset(
+        X=X_test, y=y_test, num_classes=cfg['num_classes'],
+        img_size=cfg['img_size']
+    )
+    test_loader = torch.utils.data.DataLoader(
+        dtest,
+        batch_size=cfg['batch_size'],
+        shuffle=False,
+        drop_last=False
+    )
+
+    model.eval()
+    target_list: List[torch.Tensor] = []
+    output_list: List[torch.Tensor] = []
+    for inputs, targets in tqdm(test_loader):
+        inputs = inputs.to(device)
+        targets = targets.to(device)
+
+        outputs = model(inputs)
+
+        target_list.append(targets.detach().cpu())
+        output_list.append(outputs.detach().cpu())
+
+        b, _, h, w = outputs.size()
+        outputs = outputs.permute(0, 2, 3, 1)
+
+        outputs = Resize.apply(outputs, (b*h*w, cfg['num_classes']))
+        targets = targets.reshape(-1)
+
+    outputs = torch.cat(output_list, dim=0)
+    targets = torch.cat(target_list, dim=0)
+
+    loss = criterion(outputs, targets)
+    iou = metrics.intersection_over_union(
+        y_true=targets, y_pred=outputs, num_classes=cfg['num_classes']
+    )
+    cmaps: List[Tuple[str, Tuple[int]]] = \
+        utils.load_labelmap('../VOCDataset/labelmap.txt')
+
+    logger.info(f'Finish testing on {len(X_test)} images.')
+    logger.info(f'Loss: {loss}')
+    logger.info('IoU:')
+    for idx, (class_name, _) in enumerate(cmaps):
+        logger.info(f'{class_name.rjust(16)}: {iou[idx]}')

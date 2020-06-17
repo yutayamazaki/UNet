@@ -144,8 +144,6 @@ if __name__ == '__main__':
         model, optimizer, criterion, cfg['num_classes']
     )
     best_loss = 10000.
-    train_losses: List[float] = []
-    valid_losses: List[float] = []
     metrics: Dict[str, List[float]] = {
         'train_loss': [],
         'valid_loss': [],
