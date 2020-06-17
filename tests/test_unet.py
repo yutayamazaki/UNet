@@ -1,5 +1,5 @@
 import unittest
-from typing import List, Tuple
+from typing import List
 
 import torch
 from torchvision.models.resnet import BasicBlock, Bottleneck
@@ -36,8 +36,10 @@ class UNetResNet34Tests(unittest.TestCase):
 class LoadResNetBackboneTests(unittest.TestCase):
 
     def setUp(self):
-        self.backbones: Tuple[str] = (
-            'resnet18', 'resnet34', 'resnet50', 'resnet101', 'resnet152'
+        self.backbones = (
+            'resnet18', 'resnet34', 'resnet50', 'resnet101', 'resnet152',
+            'resnext50_32x4d', 'resnext101_32x8d', 'wide_resnet50_2',
+            'wide_resnet101_2'
         )
 
     def test_return(self):
@@ -58,8 +60,10 @@ class LoadResNetBackboneTests(unittest.TestCase):
 class UNetResNetTests(unittest.TestCase):
 
     def setUp(self):
-        self.backbones: Tuple[str] = (
-            'resnet18', 'resnet34', 'resnet50', 'resnet101', 'resnet152'
+        self.backbones = (
+            'resnet18', 'resnet34', 'resnet50', 'resnet101', 'resnet152',
+            'resnext50_32x4d', 'resnext101_32x8d', 'wide_resnet50_2',
+            'wide_resnet101_2'
         )
 
     def test_output_shape(self):

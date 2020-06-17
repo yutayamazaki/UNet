@@ -350,11 +350,30 @@ def _load_resnet_backbone(
         return torchvision.models.resnet101(pretrained)
     elif backbone == 'resnet152':
         return torchvision.models.resnet152(pretrained)
+    elif backbone == 'resnext50_32x4d':
+        return torchvision.models.resnext50_32x4d(pretrained)
+    elif backbone == 'resnext101_32x8d':
+        return torchvision.models.resnext101_32x8d(pretrained)
+    elif backbone == 'wide_resnet50_2':
+        return torchvision.models.wide_resnet50_2(pretrained)
+    elif backbone == 'wide_resnet101_2':
+        return torchvision.models.wide_resnet101_2(pretrained)
     else:
-        raise ValueError('backbone must be resnet18, 34, 50, 101, 152.')
+        attributes = (
+            'resnet18', 'resnet34', 'resnet50', 'resnet101', 'resnet152',
+            'resnext50_32x4d', 'resnext101_32x8d', 'wide_resnet50_2',
+            'wide_resnet101_2'
+        )
+        raise ValueError(f'backbone must be in {attributes}.')
 
 
 class UNetResNet(nn.Module):
+    """ UNet with ResNet encoder. You can use following models as a backbone.
+
+        'resnet18', 'resnet34', 'resnet50', 'resnet101', 'resnet152',
+        'resnext50_32x4d', 'resnext101_32x8d', 'wide_resnet50_2',
+        'wide_resnet101_2'
+    """
 
     def __init__(
         self, num_classes: int, backbone: str = 'resnet18',
