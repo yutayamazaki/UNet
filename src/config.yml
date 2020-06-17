@@ -2,11 +2,11 @@
 num_classes: 22  # include background
 
 # Hyper parameters
-model: UNetResNet34  # UNet or UNetResNet34
+model: UNet  # UNet or UNetResNet34
 img_size: 256
 batch_size: 4
-num_epochs: 100
-min_lr: 0.0001
-max_lr: 0.005
+num_epochs: 200
+min_lr: 0.00005
+max_lr: 0.01
 momentum: 0.9
 weight_decay: 0.0003

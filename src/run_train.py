@@ -168,7 +168,7 @@ if __name__ == '__main__':
             )
             torch.save(trainer.weights, path)
 
-        # scheduler.step()
+        scheduler.step()
 
         logger.info(f'EPOCH: [{epoch}/{cfg["num_epochs"]}]')
         logger.info(
