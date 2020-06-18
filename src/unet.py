@@ -373,6 +373,10 @@ class UNetResNet(nn.Module):
         'resnet18', 'resnet34', 'resnet50', 'resnet101', 'resnet152',
         'resnext50_32x4d', 'resnext101_32x8d', 'wide_resnet50_2',
         'wide_resnet101_2'
+
+        Difference from original UNet.
+            - Concate decoded feature maps to detect objects which has varios
+              scales.
     """
 
     def __init__(
@@ -441,6 +445,8 @@ class UNetResNet(nn.Module):
         d2 = self.decode2(d3, e2)  # [B, 64, H/2, W/2]
         d1 = self.decode1(d2)  # [B, 256, H, W]
 
+        # Concate feature maps with multiple resolutions to detect objects of
+        # various scales.
         f = torch.cat(
             (
                 d1,
