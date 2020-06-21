@@ -7,6 +7,9 @@ import torchvision
 
 
 class FPA(nn.Module):
+    """ Feature Pyramid Attention module proposed in
+        https://arxiv.org/abs/1805.10180
+    """
 
     def __init__(self, in_channels: int, out_channels: int):
         super(FPA, self).__init__()
@@ -227,6 +230,8 @@ class UNetResNet(nn.Module):
         Difference from original UNet.
             - Concate decoded feature maps to detect objects which has varios
               scales.
+            - Add SCSE module after each encode layers.
+            - Add Feature Pyramid Attention module.
     """
 
     def __init__(
