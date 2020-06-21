@@ -4,33 +4,22 @@ from typing import List
 import torch
 from torchvision.models.resnet import BasicBlock, Bottleneck
 
-from src import unet
+from src import models
 
 
 class LoadModelTests(unittest.TestCase):
 
     def test_unet(self):
-        model = unet.load_model(name='UNet', num_classes=2)
-        self.assertIsInstance(model, unet.UNet)
+        model = models.load_unet(backbone=None, num_classes=2)
+        self.assertIsInstance(model, models.UNet)
 
     def test_unet_resnet(self):
-        model = unet.load_model(name='UNetResNet34', num_classes=2)
-        self.assertIsInstance(model, unet.UNetResNet34)
+        model = models.load_unet(backbone='resnet34', num_classes=2)
+        self.assertIsInstance(model, models.UNetResNet)
 
     def test_raise_name(self):
         with self.assertRaises(ValueError):
-            unet.load_model(name='InvalidName', num_classes=2)
-
-
-class UNetResNet34Tests(unittest.TestCase):
-
-    def test_output_shape(self):
-        net = unet.UNetResNet34(num_classes=3)
-
-        size: torch.Size = torch.Size((2, 3, 256, 256))
-        x = torch.Tensor(size)
-        out = net(x)
-        self.assertEqual(out.size(), size)
+            models.load_unet(backbone='InvalidName', num_classes=2)
 
 
 class LoadResNetBackboneTests(unittest.TestCase):
@@ -45,7 +34,7 @@ class LoadResNetBackboneTests(unittest.TestCase):
     def test_return(self):
         pretrained: bool = False
         for backbone in self.backbones:
-            net = unet._load_resnet_backbone(backbone, pretrained)
+            net = models.unet_resnet._load_resnet_backbone(backbone, pretrained)
 
             has_basic_block: bool = backbone in ('resnet18', 'resnet34')
             block = BasicBlock if has_basic_block else Bottleneck
@@ -54,7 +43,7 @@ class LoadResNetBackboneTests(unittest.TestCase):
     def test_raise(self):
         with self.assertRaises(ValueError):
             pretrained: bool = False
-            unet._load_resnet_backbone('invalid_backbone', pretrained)
+            models.unet_resnet._load_resnet_backbone('invalid_backbone', pretrained)
 
 
 class UNetResNetTests(unittest.TestCase):
@@ -70,7 +59,7 @@ class UNetResNetTests(unittest.TestCase):
         pretrained: bool = False
         num_classes: int = 3
         for backbone in self.backbones:
-            net = unet.UNetResNet(num_classes, backbone, pretrained)
+            net = models.UNetResNet(num_classes, backbone, pretrained)
 
             size: torch.Size = torch.Size([2, num_classes, 256, 256])
             x: torch.Tensor = torch.zeros(size)

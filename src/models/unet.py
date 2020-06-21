@@ -1,9 +1,6 @@
-from typing import List
-
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import torchvision
 
 
 def conv_relu(in_channels: int, out_channels: int) -> nn.Module:
