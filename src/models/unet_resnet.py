@@ -141,10 +141,10 @@ def conv3x3(input_dim: int, output_dim: int, rate: int = 1) -> nn.Module:
     )
 
 
-class Decoder(nn.Module):
+class UpBlock(nn.Module):
 
     def __init__(self, in_channels: int, channels: int, out_channels: int):
-        super(Decoder, self).__init__()
+        super(UpBlock, self).__init__()
         self.conv1 = conv3x3(in_channels, channels)
         self.conv2 = conv3x3(channels, out_channels)
         self.s_att = SSE(out_channels)
@@ -163,10 +163,10 @@ class Decoder(nn.Module):
         return output
 
 
-class Decoderv2(nn.Module):
+class UpBlockv2(nn.Module):
 
     def __init__(self, up_in: int, x_in: int, n_out: int):
-        super(Decoderv2, self).__init__()
+        super(UpBlockv2, self).__init__()
         up_out = x_out = n_out // 2
         self.x_conv = nn.Conv2d(x_in, x_out, 1, bias=False)
         self.tr_conv = nn.ConvTranspose2d(up_in, up_out, 2, stride=2)
@@ -267,11 +267,11 @@ class UNetResNet(nn.Module):
             nn.MaxPool2d(kernel_size=2, stride=2)
         )
 
-        self.decode5 = Decoderv2(num_channels[2], num_channels[3], 64)
-        self.decode4 = Decoderv2(64, num_channels[2], 64)
-        self.decode3 = Decoderv2(64, num_channels[1], 64)
-        self.decode2 = Decoderv2(64, num_channels[0], 64)
-        self.decode1 = Decoder(64, 32, 64)
+        self.decode5 = UpBlockv2(num_channels[2], num_channels[3], 64)
+        self.decode4 = UpBlockv2(64, num_channels[2], 64)
+        self.decode3 = UpBlockv2(64, num_channels[1], 64)
+        self.decode2 = UpBlockv2(64, num_channels[0], 64)
+        self.decode1 = UpBlock(64, 32, 64)
 
         self.logit = nn.Sequential(
             nn.Conv2d(320, 64, kernel_size=3, padding=1),
