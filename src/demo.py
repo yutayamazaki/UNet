@@ -9,7 +9,7 @@ import torch.nn as nn
 import torchvision
 from PIL import Image
 
-import unet
+import models
 import utils
 from run_train import load_config
 
@@ -38,8 +38,8 @@ if __name__ == '__main__':
     device: str = 'cuda' if torch.cuda.is_available() else 'cpu'
 
     # Load UNet model and its weights.
-    net: nn.Module = unet.load_model(
-        name=cfg['model'], num_classes=cfg['num_classes']
+    net: nn.Module = models.load_unet(
+        backbone=cfg['backbone'], num_classes=cfg['num_classes']
     )
     net.load_state_dict(torch.load(args.weights_path, map_location=device))
     net.eval()

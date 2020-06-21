@@ -11,7 +11,7 @@ import torch
 import torch.nn as nn
 import yaml
 
-import unet
+import models
 import utils
 from datasets import SegmentationDataset
 # from losses import lovasz_softmax
@@ -101,7 +101,9 @@ if __name__ == '__main__':
 
     device: str = 'cuda' if torch.cuda.is_available() else 'cpu'
 
-    model = unet.load_model(name=cfg['model'], num_classes=cfg['num_classes'])
+    model = models.load_unet(
+        backbone=cfg['backbone'], num_classes=cfg['num_classes']
+    )
     model = model.to(device)
 
     criterion = nn.CrossEntropyLoss()
@@ -162,7 +164,7 @@ if __name__ == '__main__':
 
         if valid_loss < best_loss:
             best_loss = valid_loss
-            name: str = cfg['model'].lower()
+            name: str = cfg['backbone'].lower()
             path: str = os.path.join(
                 weights_dir,
                 f'{name}_loss{valid_loss:.5f}_epoch{str(epoch).zfill(3)}.pth'

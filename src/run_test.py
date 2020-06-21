@@ -10,7 +10,7 @@ from torch.autograd._functions import Resize
 from tqdm import tqdm
 
 import metrics
-import unet
+import models
 import utils
 from datasets import SegmentationDataset
 from run_train import load_config, load_dataset
@@ -40,8 +40,8 @@ if __name__ == '__main__':
     cfg: Dict[str, Any] = load_config(args.config)
     device: str = 'cuda' if torch.cuda.is_available() else 'cpu'
 
-    model: nn.Module = unet.load_model(
-        name=cfg['model'], num_classes=cfg['num_classes']
+    model: nn.Module = models.load_unet(
+        backbone=cfg['backbone'], num_classes=cfg['num_classes']
     )
     model.load_state_dict(torch.load(args.weights_path, map_location=device))
     model.eval()

@@ -2,10 +2,10 @@
 num_classes: 22  # include background
 
 # Hyper parameters
-model: UNet  # UNet or UNetResNet34
+backbone: resnet18  # null or ResNet backbone.
 img_size: 256
 batch_size: 4
-num_epochs: 200
+num_epochs: 2
 min_lr: 0.00005
 max_lr: 0.01
 momentum: 0.9
