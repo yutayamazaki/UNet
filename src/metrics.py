@@ -51,7 +51,7 @@ def mean_intersection_over_union(
     y_pred: torch.Tensor,
     num_classes: int
 ) -> float:
-    """Return IoU metric average over classes.
+    """Return IoU (a.k.a Jaccard Index) metric average over classes.
     Args:
         y_true (torch.Tensor): With shape (B, H, W).
         y_pred (torch.Tensor): With shape (B, num_classes, H, W).
@@ -72,7 +72,7 @@ def intersection_over_union(
     y_pred: torch.Tensor,
     num_classes: int
 ) -> List[float]:
-    """Return IoU metric of each classes.
+    """Return IoU (a.k.a Jaccard Index) metric of each classes.
     Args:
         y_true (torch.Tensor): With shape (B, H, W).
         y_pred (torch.Tensor): With shape (B, num_classes, H, W).
@@ -90,4 +90,5 @@ def intersection_over_union(
 def dice_coefficient(
     inputs: torch.Tensor, targets: torch.Tensor, eps: float = 1e-8
 ) -> float:
+    """Calculate dice coefficient (a.k.a. F1 Score)."""
     return 1. - float(dice_loss(inputs, targets, eps))
