@@ -1,5 +1,4 @@
 import unittest
-from typing import List
 
 import torch
 from torchvision.models.resnet import BasicBlock, Bottleneck
@@ -34,7 +33,9 @@ class LoadResNetBackboneTests(unittest.TestCase):
     def test_return(self):
         pretrained: bool = False
         for backbone in self.backbones:
-            net = models.unet_resnet._load_resnet_backbone(backbone, pretrained)
+            net = models.unet_resnet._load_resnet_backbone(
+                backbone, pretrained
+            )
 
             has_basic_block: bool = backbone in ('resnet18', 'resnet34')
             block = BasicBlock if has_basic_block else Bottleneck
@@ -43,7 +44,9 @@ class LoadResNetBackboneTests(unittest.TestCase):
     def test_raise(self):
         with self.assertRaises(ValueError):
             pretrained: bool = False
-            models.unet_resnet._load_resnet_backbone('invalid_backbone', pretrained)
+            models.unet_resnet._load_resnet_backbone(
+                'invalid_backbone', pretrained
+            )
 
 
 class UNetResNetTests(unittest.TestCase):
