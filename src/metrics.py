@@ -3,6 +3,8 @@ from typing import List
 import numpy as np
 import torch
 
+from losses import dice_loss
+
 
 def intersection_and_union(
     y_true: torch.Tensor, y_pred: torch.Tensor,
@@ -83,3 +85,9 @@ def intersection_over_union(
         y_true=y_true, y_pred=y_pred, num_classes=num_classes
     )
     return [float(iou) for iou in intersection / (union + 1e-16)]
+
+
+def dice_coefficient(
+    inputs: torch.Tensor, targets: torch.Tensor, eps: float = 1e-8
+) -> float:
+    return float(1. - dice_loss(inputs, targets, eps))

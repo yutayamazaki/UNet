@@ -4,6 +4,7 @@ from typing import List
 import torch
 
 import metrics
+import losses
 
 
 class MeanIntersectionOverUnionTests(unittest.TestCase):
@@ -34,3 +35,18 @@ class IntersectionOverUnionTests(unittest.TestCase):
         )
         self.assertIsInstance(iou_list, list)
         self.assertEqual(tuple(iou_list), (0., 0.))
+
+
+class DiceCOefficientTests(unittest.TestCase):
+
+    def setUp(self):
+        self.num_classes: int = 2
+        self.targets: torch.Tensor = torch.zeros((2, 4, 4))
+        self.outputs: torch.Tensor = torch.zeros((2, self.num_classes, 4, 4))
+
+    def test_simple(self):
+        dice_coef: float = metrics.dice_coefficient(
+            self.outputs, self.targets
+        )
+        dice_loss: float = float(losses.dice_loss(self.outputs, self.targets))
+        self.assertEqual(dice_coef, 1. - dice_loss)
