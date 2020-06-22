@@ -3,6 +3,7 @@ import logging.config
 from logging import getLogger
 from typing import Any, Dict, List, Tuple
 
+import numpy as np
 import torch
 import torch.nn as nn
 import yaml
@@ -89,11 +90,14 @@ if __name__ == '__main__':
     iou = metrics.intersection_over_union(
         y_true=targets, y_pred=outputs, num_classes=cfg['num_classes']
     )
+    dice_coef: float = metrics.dice_coefficient(outputs, targets)
     cmaps: List[Tuple[str, Tuple[int]]] = \
         utils.load_labelmap('../VOCDataset/labelmap.txt')
 
     logger.info(f'Finish testing on {len(X_test)} images.')
     logger.info(f'Loss: {loss}')
+    logger.info(f'Dice coefficient: {dice_coef}')
+    logger.info(f'mIoU: {np.mean(iou)}')
     logger.info('IoU:')
     for idx, (class_name, _) in enumerate(cmaps):
         logger.info(f'{class_name.rjust(16)}: {iou[idx]}')
