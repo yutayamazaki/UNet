@@ -53,9 +53,10 @@ class UNetResNetTests(unittest.TestCase):
 
     def setUp(self):
         self.backbones = (
-            'resnet18', 'resnet34', 'resnet50', 'resnet101', 'resnet152',
-            'resnext50_32x4d', 'resnext101_32x8d', 'wide_resnet50_2',
-            'wide_resnet101_2'
+            'resnet18',  # BasicBlock
+            'resnet50',  # BottleNeck
+            'resnext50_32x4d',  # ResNeXt, BottleNeck
+            'wide_resnet50_2'  # WIdeResNet, BottleNeck
         )
 
     def test_output_shape(self):

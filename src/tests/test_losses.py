@@ -3,7 +3,7 @@ import unittest
 import torch
 
 import losses
-from losses.dice_loss import _to_one_hot
+from losses.dice import _to_one_hot
 
 
 class FocalLossTests(unittest.TestCase):
@@ -49,3 +49,8 @@ class DiceLossTests(unittest.TestCase):
     def test_return_simple(self):
         loss = self.criterion(self.outputs, self.targets)
         self.assertTrue(torch.isclose(loss, torch.tensor(0.5092423)))
+
+    def test_functional(self):
+        loss_class = self.criterion(self.outputs, self.targets)
+        loss_func = losses.dice_loss(self.outputs, self.targets)
+        self.assertTrue(float(loss_class), float(loss_func))
