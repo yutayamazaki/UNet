@@ -90,4 +90,4 @@ def intersection_over_union(
 def dice_coefficient(
     inputs: torch.Tensor, targets: torch.Tensor, eps: float = 1e-8
 ) -> float:
-    return float(1. - dice_loss(inputs, targets, eps))
+    return 1. - float(dice_loss(inputs, targets, eps))
