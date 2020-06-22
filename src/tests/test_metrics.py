@@ -4,7 +4,7 @@ from typing import List
 import numpy as np
 import torch
 
-from src import metrics
+import metrics
 
 
 class MeanIntersectionOverUnionTests(unittest.TestCase):

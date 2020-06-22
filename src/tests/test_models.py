@@ -4,7 +4,7 @@ from typing import List
 import torch
 from torchvision.models.resnet import BasicBlock, Bottleneck
 
-from src import models
+import models
 
 
 class LoadModelTests(unittest.TestCase):

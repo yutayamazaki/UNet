@@ -2,8 +2,8 @@ import unittest
 
 import torch
 
-from src import losses
-from src.losses.dice_loss import _to_one_hot
+import losses
+from losses.dice_loss import _to_one_hot
 
 
 class FocalLossTests(unittest.TestCase):
