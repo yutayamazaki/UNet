@@ -1,5 +1,7 @@
 # UNet
 
+![GitHub Actions](https://github.com/yutayamazaki/semantic-segmentation-pytorch/workflows/build/badge.svg)
+
 ## Setup environment
 
 ```shell
