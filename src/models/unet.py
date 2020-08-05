@@ -5,10 +5,10 @@ import torch.nn.functional as F
 
 def conv_relu(in_channels: int, out_channels: int) -> nn.Module:
     return nn.Sequential(
-               nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1),
-               nn.BatchNorm2d(out_channels),
-               nn.ReLU(inplace=True)
-            )
+        nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1),
+        nn.BatchNorm2d(out_channels),
+        nn.ReLU(inplace=True)
+    )
 
 
 class DownBlock(nn.Module):
@@ -42,8 +42,8 @@ class UpBlock(nn.Module):
         diff_y = x2.size()[2] - x1.size()[2]
         diff_x = x2.size()[3] - x1.size()[3]
 
-        x1 = F.pad(x1, (diff_x // 2, diff_x - diff_x//2,
-                        diff_y // 2, diff_y - diff_y//2))
+        x1 = F.pad(x1, (diff_x // 2, diff_x - diff_x // 2,
+                        diff_y // 2, diff_y - diff_y // 2))
         x = torch.cat([x2, x1], dim=1)
         x = self.conv1(x)
         x = self.conv2(x)

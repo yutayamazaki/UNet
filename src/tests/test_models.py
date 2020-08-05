@@ -33,7 +33,7 @@ class LoadResNetBackboneTests(unittest.TestCase):
     def test_return(self):
         pretrained: bool = False
         for backbone in self.backbones:
-            net = models.unet_resnet._load_resnet_backbone(
+            net = models.modules.load_resnet_backbone(
                 backbone, pretrained
             )
 
@@ -44,7 +44,7 @@ class LoadResNetBackboneTests(unittest.TestCase):
     def test_raise(self):
         with self.assertRaises(ValueError):
             pretrained: bool = False
-            models.unet_resnet._load_resnet_backbone(
+            models.modules.load_resnet_backbone(
                 'invalid_backbone', pretrained
             )
 
