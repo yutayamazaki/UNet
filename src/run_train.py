@@ -173,7 +173,7 @@ if __name__ == '__main__':
         )
 
     cfg_path: str = os.path.join(save_dir, 'config.yml')
-    utils.dump_yaml(cfg_path, cfg)
+    utils.dump_yaml(cfg_path, cfg.todict())
 
     # Plot metrics
     plt.plot(metrics['train_loss'], label='train')
