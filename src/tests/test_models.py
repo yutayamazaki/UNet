@@ -1,6 +1,7 @@
 import unittest
 
 import torch
+import torch.nn as nn
 from torchvision.models.resnet import BasicBlock, Bottleneck
 
 import models
@@ -56,3 +57,38 @@ class UNetResNetTests(unittest.TestCase):
             x: torch.Tensor = torch.zeros(size)
             out: torch.Tensor = net(x)
             self.assertEqual(out.size(), size)
+
+
+class LoadModelTests(unittest.TestCase):
+
+    def setUp(self):
+        self.num_classes: int = 2
+        self.architecture = 'unet'
+        self.backbone: str = 'resnet18'
+        self.pretrained = False
+
+    def test_load_unet(self):
+        net: nn.Module = models.utils.load_model(
+            self.num_classes, self.architecture, self.backbone,
+            self.pretrained
+        )
+        self.assertIsInstance(net, models.unet_resnet.UNetResNet)
+        self.assertEqual(net.backbone, self.backbone)
+
+    def test_load_fpn(self):
+        architecture: str = 'fpn'
+        backbone: str = 'resnet34'
+        net: nn.Module = models.utils.load_model(
+            self.num_classes, architecture, backbone,
+            self.pretrained
+        )
+        self.assertIsInstance(net, models.fpn.FPN)
+        self.assertEqual(net.backbone, backbone)
+
+    def test_raise(self):
+        architecture: str = 'invalid-name'
+        with self.assertRaises(ValueError):
+            models.utils.load_model(
+                self.num_classes, architecture, self.backbone,
+                self.pretrained
+            )
