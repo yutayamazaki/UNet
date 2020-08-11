@@ -158,7 +158,7 @@ if __name__ == '__main__':
 
         if valid_loss < best_loss:
             best_loss = valid_loss
-            name: str = cfg.backbone.lower()
+            name: str = cfg.model.architecture.lower()
             path: str = os.path.join(
                 weights_dir,
                 f'{name}_loss{valid_loss:.5f}_epoch{str(epoch).zfill(3)}.pth'
