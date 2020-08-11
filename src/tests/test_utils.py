@@ -2,6 +2,7 @@ import unittest
 from typing import Any, Dict, List, Tuple
 
 import numpy as np
+import torch.nn as nn
 
 import utils
 
@@ -21,6 +22,14 @@ class CreateSegmentationResultTests(unittest.TestCase):
         self.assertIsInstance(out, np.ndarray)
         self.assertEqual(out.shape, (128, 128, 3))
         self.assertEqual(tuple(out[0][0]), self.cmaps[0][1])
+
+
+class CountParametersTests(unittest.TestCase):
+
+    def test_simple(self):
+        net: nn.Module = nn.Linear(3, 2, bias=False)
+        num_params: int = utils.count_parameters(net)
+        self.assertEqual(num_params, 3 * 2)
 
 
 class DotDictTests(unittest.TestCase):
