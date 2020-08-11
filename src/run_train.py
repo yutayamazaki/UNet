@@ -18,16 +18,6 @@ from datasets import SegmentationDataset
 from trainer import SegmentationTrainer
 
 
-def load_config(path: str) -> Dict[str, Any]:
-    with open(path, 'r') as f:
-        return yaml.load(f, Loader=yaml.FullLoader)
-
-
-def dump_config(path: str, dic: Dict[str, Any]):
-    with open(path, 'w') as f:
-        yaml.dump(dic, f)
-
-
 def load_text(path: str) -> List[str]:
     with open(path, 'r', encoding='utf-8') as f:
         text = f.read().split('\n')
@@ -96,7 +86,7 @@ if __name__ == '__main__':
     weights_dir: str = os.path.join(save_dir, 'weights')
     os.makedirs(weights_dir, exist_ok=False)
 
-    cfg_dict: Dict[str, Any] = load_config(args.config)
+    cfg_dict: Dict[str, Any] = utils.load_yaml(args.config)
     cfg: utils.DotDict = utils.DotDict(cfg_dict)
     logger.info(f'Training configurations: {cfg}')
 
@@ -183,7 +173,7 @@ if __name__ == '__main__':
         )
 
     cfg_path: str = os.path.join(save_dir, 'config.yml')
-    dump_config(cfg_path, cfg)
+    utils.dump_yaml(cfg_path, cfg)
 
     # Plot metrics
     plt.plot(metrics['train_loss'], label='train')

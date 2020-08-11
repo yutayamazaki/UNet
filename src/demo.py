@@ -11,7 +11,6 @@ from PIL import Image
 
 import models
 import utils
-from run_train import load_config
 
 
 if __name__ == '__main__':
@@ -29,7 +28,7 @@ if __name__ == '__main__':
     )
     args = parser.parse_args()
 
-    cfg_dict: Dict[str, Any] = load_config('./config.yml')
+    cfg_dict: Dict[str, Any] = utils.load_yaml('./config.yml')
     cfg: utils.DotDict = utils.DotDict(cfg_dict)
     cmaps: List[Tuple[str, Tuple[int]]] = utils.load_labelmap(
         path='../VOCdevkit/VOC2012/labelmap.txt'

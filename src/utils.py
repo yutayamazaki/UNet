@@ -5,6 +5,17 @@ from typing import Any, Dict, List, Tuple
 import numpy as np
 import torch
 import torch.nn as nn
+import yaml
+
+
+def load_yaml(path: str) -> Dict[str, Any]:
+    with open(path, 'r') as f:
+        return yaml.load(f, Loader=yaml.FullLoader)
+
+
+def dump_yaml(path: str, dic: Dict[str, Any]):
+    with open(path, 'w') as f:
+        yaml.dump(dic, f)
 
 
 def load_labelmap(path: str) -> List[Tuple[str, Tuple[int]]]:

@@ -14,7 +14,7 @@ import metrics
 import models
 import utils
 from datasets import SegmentationDataset
-from run_train import load_config, load_dataset
+from run_train import load_dataset
 
 
 if __name__ == '__main__':
@@ -38,7 +38,7 @@ if __name__ == '__main__':
     )
     args = parser.parse_args()
 
-    cfg_dict: Dict[str, Any] = load_config(args.config)
+    cfg_dict: Dict[str, Any] = utils.load_yaml(args.config)
     cfg: utils.DotDict = utils.DotDict(cfg_dict)
     device: str = 'cuda' if torch.cuda.is_available() else 'cpu'
 
