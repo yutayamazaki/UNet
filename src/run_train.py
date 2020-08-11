@@ -92,8 +92,11 @@ if __name__ == '__main__':
 
     device: str = 'cuda' if torch.cuda.is_available() else 'cpu'
 
-    model = models.load_unet(
-        backbone=cfg.backbone, num_classes=cfg.num_classes
+    model = models.utils.load_model(
+        num_classes=cfg.num_classes,
+        architecture=cfg.model.architecture,
+        backbone=cfg.model.backbone,
+        pretrained=True
     )
     model = model.to(device)
 

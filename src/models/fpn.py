@@ -53,7 +53,7 @@ class FPNSegmentationHead(nn.Module):
         self.conv2 = modules.conv3x3(in_channels, out_channels)
         self.conv3 = modules.conv3x3(in_channels, out_channels)
         self.conv4 = modules.conv3x3(in_channels, out_channels)
-        self.conv3x3 = modules.conv3x3(out_channels*4, num_classes)
+        self.conv3x3 = modules.conv3x3(out_channels * 4, num_classes)
 
     def forward(self, d1, d2, d3, d4):
         """

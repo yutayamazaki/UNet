@@ -1,8 +1,6 @@
-# Constant variables
 num_classes: 22  # include background
 
 # Hyper parameters
-backbone: resnet18  # null or ResNet backbone.
 img_size: 256
 batch_size: 4
 num_epochs: 2
@@ -10,3 +8,7 @@ min_lr: 0.00005
 max_lr: 0.01
 momentum: 0.9
 weight_decay: 0.0003
+
+model:
+  architecture: unet  # fpn of unet
+  backbone: resnet18

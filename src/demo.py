@@ -38,8 +38,11 @@ if __name__ == '__main__':
     device: str = 'cuda' if torch.cuda.is_available() else 'cpu'
 
     # Load UNet model and its weights.
-    net: nn.Module = models.load_unet(
-        backbone=cfg.backbone, num_classes=cfg.num_classes
+    net: nn.Module = models.utils.load_model(
+        num_classes=cfg.num_classes,
+        architecture=cfg.model.architecture,
+        backbone=cfg.model.backbone,
+        pretrained=False
     )
     net.load_state_dict(torch.load(args.weights_path, map_location=device))
     net.eval()

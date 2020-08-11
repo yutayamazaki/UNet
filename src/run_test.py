@@ -1,13 +1,12 @@
 import argparse
 import logging.config
 from logging import getLogger
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List
 
 import numpy as np
 import torch
 import torch.nn as nn
 import yaml
-from torch.autograd._functions import Resize
 from tqdm import tqdm
 
 import metrics
@@ -42,8 +41,11 @@ if __name__ == '__main__':
     cfg: utils.DotDict = utils.DotDict(cfg_dict)
     device: str = 'cuda' if torch.cuda.is_available() else 'cpu'
 
-    model: nn.Module = models.load_unet(
-        backbone=cfg.backbone, num_classes=cfg.num_classes
+    model = models.utils.load_model(
+        num_classes=cfg.num_classes,
+        architecture=cfg.model.architecture,
+        backbone=cfg.model.backbone,
+        pretrained=True
     )
     model.load_state_dict(torch.load(args.weights_path, map_location=device))
     model.eval()
@@ -53,7 +55,7 @@ if __name__ == '__main__':
 
     criterion = nn.CrossEntropyLoss()
 
-    _, _, X_test, _, _, y_test = load_dataset()
+    _, X_test, _, y_test = load_dataset()
 
     dtest = SegmentationDataset(
         X=X_test, y=y_test, num_classes=cfg.num_classes,
@@ -78,27 +80,22 @@ if __name__ == '__main__':
         target_list.append(targets.detach().cpu())
         output_list.append(outputs.detach().cpu())
 
-        b, _, h, w = outputs.size()
-        outputs = outputs.permute(0, 2, 3, 1)
-
-        outputs = Resize.apply(outputs, (b * h * w, cfg.num_classes))
-        targets = targets.reshape(-1)
-
     outputs = torch.cat(output_list, dim=0)
-    targets = torch.cat(target_list, dim=0)
+    targets = torch.cat(target_list, dim=0).squeeze(1)
 
     loss = criterion(outputs, targets)
     iou = metrics.intersection_over_union(
         y_true=targets, y_pred=outputs, num_classes=cfg.num_classes
     )
     dice_coef: float = metrics.dice_coefficient(outputs, targets)
-    cmaps: List[Tuple[str, Tuple[int]]] = \
-        utils.load_labelmap('../VOCDataset/labelmap.txt')
+
+    # cmaps: List[Tuple[str, Tuple[int]]] = \
+    #     utils.load_labelmap('../VOCDataset/labelmap.txt')
 
     logger.info(f'Finish testing on {len(X_test)} images.')
     logger.info(f'Loss: {loss}')
     logger.info(f'Dice coefficient: {dice_coef}')
     logger.info(f'mIoU: {np.mean(iou)}')
     logger.info('IoU:')
-    for idx, (class_name, _) in enumerate(cmaps):
-        logger.info(f'{class_name.rjust(16)}: {iou[idx]}')
+    # for idx, (class_name, _) in enumerate(cmaps):
+    #     logger.info(f'{class_name.rjust(16)}: {iou[idx]}')

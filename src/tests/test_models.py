@@ -6,21 +6,6 @@ from torchvision.models.resnet import BasicBlock, Bottleneck
 import models
 
 
-class LoadModelTests(unittest.TestCase):
-
-    def test_unet(self):
-        model = models.load_unet(backbone=None, num_classes=2)
-        self.assertIsInstance(model, models.UNet)
-
-    def test_unet_resnet(self):
-        model = models.load_unet(backbone='resnet34', num_classes=2)
-        self.assertIsInstance(model, models.UNetResNet)
-
-    def test_raise_name(self):
-        with self.assertRaises(ValueError):
-            models.load_unet(backbone='InvalidName', num_classes=2)
-
-
 class LoadResNetBackboneTests(unittest.TestCase):
 
     def setUp(self):
@@ -63,7 +48,9 @@ class UNetResNetTests(unittest.TestCase):
         pretrained: bool = False
         num_classes: int = 3
         for backbone in self.backbones:
-            net = models.UNetResNet(num_classes, backbone, pretrained)
+            net = models.unet_resnet.UNetResNet(
+                num_classes, backbone, pretrained
+            )
 
             size: torch.Size = torch.Size([2, num_classes, 256, 256])
             x: torch.Tensor = torch.zeros(size)
