@@ -1,5 +1,5 @@
 import unittest
-from typing import List, Tuple
+from typing import Any, Dict, List, Tuple
 
 import numpy as np
 
@@ -21,3 +21,28 @@ class CreateSegmentationResultTests(unittest.TestCase):
         self.assertIsInstance(out, np.ndarray)
         self.assertEqual(out.shape, (128, 128, 3))
         self.assertEqual(tuple(out[0][0]), self.cmaps[0][1])
+
+
+class DotDictTests(unittest.TestCase):
+
+    def test_simple(self):
+        dic: Dict[str, Any] = {
+            'string': 'aaa',
+            'integer': 12,
+            'dict': {'key': 'value'},
+            'list': [1, 2]
+        }
+        dotdict = utils.DotDict(dic)
+        self.assertEqual(dotdict.string, dic['string'])
+        self.assertEqual(dotdict.integer, dic['integer'])
+        self.assertEqual(dotdict.dict.key, dic['dict']['key'])
+        self.assertEqual(dotdict.list, dic['list'])
+
+    def test_todict(self):
+        dic: Dict[str, Any] = {
+            'nested': {'key': {'key': 'val'}}
+        }
+        dotdict = utils.DotDict(dic)
+        ret: Dict[Any, Any] = dotdict.todict()
+
+        self.assertDictEqual(ret, dic)
