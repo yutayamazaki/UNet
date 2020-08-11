@@ -29,7 +29,8 @@ if __name__ == '__main__':
     )
     args = parser.parse_args()
 
-    cfg: Dict[str, Any] = load_config('./config.yml')
+    cfg_dict: Dict[str, Any] = load_config('./config.yml')
+    cfg: utils.DotDict = utils.DotDict(cfg_dict)
     cmaps: List[Tuple[str, Tuple[int]]] = utils.load_labelmap(
         path='../VOCdevkit/VOC2012/labelmap.txt'
     )
@@ -39,7 +40,7 @@ if __name__ == '__main__':
 
     # Load UNet model and its weights.
     net: nn.Module = models.load_unet(
-        backbone=cfg['backbone'], num_classes=cfg['num_classes']
+        backbone=cfg.backbone, num_classes=cfg.num_classes
     )
     net.load_state_dict(torch.load(args.weights_path, map_location=device))
     net.eval()
@@ -48,7 +49,7 @@ if __name__ == '__main__':
     # Load image used in prediction.
     img = Image.open(args.img_path).convert('RGB')
     transform = torchvision.transforms.Compose([
-        torchvision.transforms.Resize((cfg['img_size'], cfg['img_size'])),
+        torchvision.transforms.Resize((cfg.img_size, cfg.img_size)),
         torchvision.transforms.ToTensor(),
     ])
     img_tensor: torch.Tensor = transform(img)
@@ -66,7 +67,7 @@ if __name__ == '__main__':
     ax2 = fig.add_subplot(1, 3, 2)
     ax3 = fig.add_subplot(1, 3, 3)
 
-    ax1.imshow(img.resize((cfg['img_size'], cfg['img_size'])))
+    ax1.imshow(img.resize((cfg.img_size, cfg.img_size)))
     ax1.set_title('original')
 
     anno_id, _ = os.path.splitext(os.path.basename(args.img_path))
@@ -76,7 +77,7 @@ if __name__ == '__main__':
     if not os.path.exists(anno_path):
         raise FileNotFoundError(f'No such file: {anno_path}')
     anno_img = Image.open(anno_path).convert('RGB')
-    ax2.imshow(anno_img.resize((cfg['img_size'], cfg['img_size'])))
+    ax2.imshow(anno_img.resize((cfg.img_size, cfg.img_size)))
     ax2.set_title('annotation')
 
     colored_image: np.ndarray = utils.create_segmentation_result(

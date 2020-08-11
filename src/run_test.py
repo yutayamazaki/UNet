@@ -38,11 +38,12 @@ if __name__ == '__main__':
     )
     args = parser.parse_args()
 
-    cfg: Dict[str, Any] = load_config(args.config)
+    cfg_dict: Dict[str, Any] = load_config(args.config)
+    cfg: utils.DotDict = utils.DotDict(cfg_dict)
     device: str = 'cuda' if torch.cuda.is_available() else 'cpu'
 
     model: nn.Module = models.load_unet(
-        backbone=cfg['backbone'], num_classes=cfg['num_classes']
+        backbone=cfg.backbone, num_classes=cfg.num_classes
     )
     model.load_state_dict(torch.load(args.weights_path, map_location=device))
     model.eval()
@@ -55,12 +56,12 @@ if __name__ == '__main__':
     _, _, X_test, _, _, y_test = load_dataset()
 
     dtest = SegmentationDataset(
-        X=X_test, y=y_test, num_classes=cfg['num_classes'],
-        img_size=cfg['img_size']
+        X=X_test, y=y_test, num_classes=cfg.num_classes,
+        img_size=cfg.img_size
     )
     test_loader = torch.utils.data.DataLoader(
         dtest,
-        batch_size=cfg['batch_size'],
+        batch_size=cfg.batch_size,
         shuffle=False,
         drop_last=False
     )
@@ -80,7 +81,7 @@ if __name__ == '__main__':
         b, _, h, w = outputs.size()
         outputs = outputs.permute(0, 2, 3, 1)
 
-        outputs = Resize.apply(outputs, (b*h*w, cfg['num_classes']))
+        outputs = Resize.apply(outputs, (b * h * w, cfg.num_classes))
         targets = targets.reshape(-1)
 
     outputs = torch.cat(output_list, dim=0)
@@ -88,7 +89,7 @@ if __name__ == '__main__':
 
     loss = criterion(outputs, targets)
     iou = metrics.intersection_over_union(
-        y_true=targets, y_pred=outputs, num_classes=cfg['num_classes']
+        y_true=targets, y_pred=outputs, num_classes=cfg.num_classes
     )
     dice_coef: float = metrics.dice_coefficient(outputs, targets)
     cmaps: List[Tuple[str, Tuple[int]]] = \

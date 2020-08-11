@@ -96,13 +96,14 @@ if __name__ == '__main__':
     weights_dir: str = os.path.join(save_dir, 'weights')
     os.makedirs(weights_dir, exist_ok=False)
 
-    cfg: Dict[str, Any] = load_config(args.config)
+    cfg_dict: Dict[str, Any] = load_config(args.config)
+    cfg: utils.DotDict = utils.DotDict(cfg_dict)
     logger.info(f'Training configurations: {cfg}')
 
     device: str = 'cuda' if torch.cuda.is_available() else 'cpu'
 
     model = models.load_unet(
-        backbone=cfg['backbone'], num_classes=cfg['num_classes']
+        backbone=cfg.backbone, num_classes=cfg.num_classes
     )
     model = model.to(device)
 
@@ -111,40 +112,40 @@ if __name__ == '__main__':
     X_train, X_valid, y_train, y_valid = load_dataset()
 
     dtrain = SegmentationDataset(
-        X=X_train, y=y_train, num_classes=cfg['num_classes'],
-        img_size=cfg['img_size']
+        X=X_train, y=y_train, num_classes=cfg.num_classes,
+        img_size=cfg.img_size
     )
     train_loader = torch.utils.data.DataLoader(
         dtrain,
-        batch_size=cfg['batch_size'],
+        batch_size=cfg.batch_size,
         shuffle=True,
         drop_last=True
     )
 
     dvalid = SegmentationDataset(
-        X=X_valid, y=y_valid, num_classes=cfg['num_classes'],
-        img_size=cfg['img_size']
+        X=X_valid, y=y_valid, num_classes=cfg.num_classes,
+        img_size=cfg.img_size
     )
     valid_loader = torch.utils.data.DataLoader(
         dvalid,
-        batch_size=cfg['batch_size']
+        batch_size=cfg.batch_size
     )
 
     optimizer = torch.optim.SGD(
         model.parameters(),
-        lr=cfg['max_lr'],
-        momentum=cfg['momentum'],
-        weight_decay=cfg['weight_decay']
+        lr=cfg.max_lr,
+        momentum=cfg.momentum,
+        weight_decay=cfg.weight_decay
     )
 
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
         optimizer,
-        T_max=cfg['num_epochs'],
-        eta_min=cfg['min_lr']
+        T_max=cfg.num_epochs,
+        eta_min=cfg.min_lr
     )
 
     trainer = SegmentationTrainer(
-        model, optimizer, criterion, cfg['num_classes']
+        model, optimizer, criterion, cfg.num_classes
     )
     best_loss = 10000.
     metrics: Dict[str, List[float]] = {
@@ -153,7 +154,7 @@ if __name__ == '__main__':
         'train_iou': [],
         'valid_iou': []
     }
-    for epoch in range(1, 1 + cfg['num_epochs']):
+    for epoch in range(1, 1 + cfg.num_epochs):
         train_loss, train_iou = trainer.epoch_train(train_loader)
         valid_loss, valid_iou = trainer.epoch_eval(valid_loader)
 
@@ -164,7 +165,7 @@ if __name__ == '__main__':
 
         if valid_loss < best_loss:
             best_loss = valid_loss
-            name: str = cfg['backbone'].lower()
+            name: str = cfg.backbone.lower()
             path: str = os.path.join(
                 weights_dir,
                 f'{name}_loss{valid_loss:.5f}_epoch{str(epoch).zfill(3)}.pth'
@@ -173,7 +174,7 @@ if __name__ == '__main__':
 
         scheduler.step()  # type: ignore
 
-        logger.info(f'EPOCH: [{epoch}/{cfg["num_epochs"]}]')
+        logger.info(f'EPOCH: [{epoch}/{cfg.num_epochs}]')
         logger.info(
             f'TRAIN LOSS: {train_loss:.8f}, VALID LOSS: {valid_loss:.8f}'
         )
