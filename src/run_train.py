@@ -11,6 +11,7 @@ import torch
 import torch.nn as nn
 import yaml
 
+import cfg_tools
 import models
 import utils
 from datasets import SegmentationDataset
@@ -124,11 +125,8 @@ if __name__ == '__main__':
         batch_size=cfg.batch_size
     )
 
-    optimizer = torch.optim.SGD(
-        model.parameters(),
-        lr=cfg.max_lr,
-        momentum=cfg.momentum,
-        weight_decay=cfg.weight_decay
+    optimizer = cfg_tools.load_optimizer(
+        model.parameters(), cfg.optimizer.name, **cfg.optimizer.params
     )
 
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
