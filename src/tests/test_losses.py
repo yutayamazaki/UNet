@@ -54,3 +54,15 @@ class DiceLossTests(unittest.TestCase):
         loss_class = self.criterion(self.outputs, self.targets)
         loss_func = losses.dice_loss(self.outputs, self.targets)
         self.assertTrue(float(loss_class), float(loss_func))
+
+
+class JaccardLossTests(unittest.TestCase):
+
+    def setUp(self):
+        self.outputs = torch.Tensor(([0.1, 0.9], [0.8, 0.2]))
+        self.targets = torch.Tensor([1, 0]).long()
+        self.criterion = losses.JaccardLoss(num_classes=2)
+
+    def test_return_simple(self):
+        loss = self.criterion(self.outputs, self.targets)
+        self.assertIsInstance(loss, torch.Tensor)
