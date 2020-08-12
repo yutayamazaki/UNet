@@ -7,70 +7,6 @@ import torch.nn.functional as F
 from models import attentions, modules
 
 
-class FPA(nn.Module):
-
-    def __init__(self, in_channels, out_channels):
-        super(FPA, self).__init__()
-        self.glob = nn.Sequential(
-            nn.AdaptiveAvgPool2d(1),
-            nn.Conv2d(in_channels, out_channels, kernel_size=1, bias=False)
-        )
-        self.down2_1 = nn.Sequential(
-            nn.Conv2d(in_channels, in_channels, kernel_size=5, stride=2,
-                      padding=2, bias=False),
-            nn.BatchNorm2d(in_channels),
-            nn.ReLU(True)
-        )
-        self.down2_2 = nn.Sequential(
-            nn.Conv2d(in_channels, out_channels, kernel_size=5, padding=2,
-                      bias=False),
-            nn.BatchNorm2d(out_channels),
-            nn.ReLU(True)
-        )
-        self.down3_1 = nn.Sequential(
-            nn.Conv2d(in_channels, in_channels, kernel_size=3, stride=2,
-                      padding=1, bias=False),
-            nn.BatchNorm2d(in_channels),
-            nn.ReLU(True)
-        )
-        self.down3_2 = nn.Sequential(
-            nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1,
-                      bias=False),
-            nn.BatchNorm2d(out_channels),
-            nn.ReLU(True)
-        )
-
-        self.conv1 = nn.Sequential(
-            nn.Conv2d(in_channels, out_channels, kernel_size=1, bias=False),
-            nn.BatchNorm2d(out_channels),
-            nn.ReLU(True)
-        )
-
-    def forward(self, x):
-        x_glob = self.glob(x)
-        x_glob = F.interpolate(
-            x_glob, scale_factor=16, mode='bilinear', align_corners=True
-        )
-        d2 = self.down2_1(x)
-        d3 = self.down3_1(d2)
-        d2 = self.down2_2(d2)
-        d3 = self.down3_2(d3)
-
-        d3 = F.interpolate(
-            d3, scale_factor=2, mode='bilinear', align_corners=True
-        )
-        d2 = d2 + d3
-
-        d2 = F.interpolate(
-            d2, scale_factor=2, mode='bilinear', align_corners=True
-        )
-
-        x = self.conv1(x)
-        x = x * d2
-        x = x + x_glob
-        return x
-
-
 class Decoder(nn.Module):
 
     def __init__(self, in_channels, channels, out_channels):
@@ -160,7 +96,10 @@ class UNetResNet(nn.Module):
         )
 
         self.center = nn.Sequential(
-            FPA(in_channels=num_channels[3], out_channels=num_channels[2]),
+            attentions.FPA(
+                in_channels=num_channels[3], out_channels=num_channels[2],
+                fmap_size=16
+            ),
             nn.MaxPool2d(kernel_size=2, stride=2)
         )
 
