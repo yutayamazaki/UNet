@@ -5,10 +5,10 @@ from typing import Any, Dict, List
 
 import numpy as np
 import torch
-import torch.nn as nn
 import yaml
 from tqdm import tqdm
 
+import cfg_tools
 import metrics
 import models
 import utils
@@ -53,7 +53,7 @@ if __name__ == '__main__':
 
     logger.info(f'Configurations: {cfg}')
 
-    criterion = nn.CrossEntropyLoss()
+    criterion = cfg_tools.load_loss(cfg.loss.name, **cfg.loss.params)
 
     _, X_test, _, y_test = load_dataset()
 
