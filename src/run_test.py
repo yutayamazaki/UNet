@@ -3,6 +3,7 @@ import logging.config
 from logging import getLogger
 from typing import Any, Dict, List
 
+import albumentations as albu
 import numpy as np
 import torch
 import yaml
@@ -59,7 +60,8 @@ if __name__ == '__main__':
 
     dtest = SegmentationDataset(
         X=X_test, y=y_test, num_classes=cfg.num_classes,
-        img_size=cfg.img_size
+        img_size=cfg.img_size,
+        transforms=albu.core.serialization.from_dict(cfg.albumentations.eval)
     )
     test_loader = torch.utils.data.DataLoader(
         dtest,

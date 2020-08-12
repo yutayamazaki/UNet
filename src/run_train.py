@@ -5,6 +5,7 @@ from datetime import datetime
 from logging import getLogger
 from typing import Any, Dict, List
 
+import albumentations as albu
 import matplotlib.pyplot as plt
 import seaborn as sns
 import torch
@@ -105,7 +106,8 @@ if __name__ == '__main__':
 
     dtrain = SegmentationDataset(
         X=X_train, y=y_train, num_classes=cfg.num_classes,
-        img_size=cfg.img_size
+        img_size=cfg.img_size,
+        transforms=albu.core.serialization.from_dict(cfg.albumentations.train)
     )
     train_loader = torch.utils.data.DataLoader(
         dtrain,
@@ -116,7 +118,8 @@ if __name__ == '__main__':
 
     dvalid = SegmentationDataset(
         X=X_valid, y=y_valid, num_classes=cfg.num_classes,
-        img_size=cfg.img_size
+        img_size=cfg.img_size,
+        transforms=albu.core.serialization.from_dict(cfg.albumentations.eval)
     )
     valid_loader = torch.utils.data.DataLoader(
         dvalid,

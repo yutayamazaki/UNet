@@ -41,7 +41,7 @@ class SegmentationTrainer(AbstractTrainer):
             b, _, h, w = outputs.size()
             outputs = outputs.permute(0, 2, 3, 1)
 
-            outputs = Resize.apply(outputs, (b*h*w, self.num_classes))
+            outputs = Resize.apply(outputs, (b * h * w, self.num_classes))
             targets = targets.reshape(-1)
 
             m_iou = mean_intersection_over_union(
@@ -73,7 +73,7 @@ class SegmentationTrainer(AbstractTrainer):
             b, _, h, w = outputs.size()
             outputs = outputs.permute(0, 2, 3, 1)
 
-            outputs = Resize.apply(outputs, (b*h*w, self.num_classes))
+            outputs = Resize.apply(outputs, (b * h * w, self.num_classes))
             targets = targets.reshape(-1)
 
             m_iou = mean_intersection_over_union(

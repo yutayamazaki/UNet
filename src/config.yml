@@ -43,3 +43,62 @@ scheduler:
 model:
   architecture: unet  # fpn of unet
   backbone: resnet18
+albumentations:
+  eval:
+    __version__: 0.4.6
+    transform:
+      __class_fullname__: albumentations.core.composition.Compose
+      p: 1.0
+      transforms:
+      - __class_fullname__: albumentations.augmentations.transforms.Normalize
+        always_apply: False
+        max_pixel_value: 255.0
+        mean:
+        - 0.485
+        - 0.456
+        - 0.406
+        p: 1.0
+        std:
+        - 0.229
+        - 0.224
+        - 0.225
+      - __class_fullname__: albumentations.augmentations.transforms.Resize
+        height: 256
+        width: 256
+        interpolation: 1
+        always_apply: false
+        p: 1
+  train:
+    __version__: 0.4.6
+    transform:
+      __class_fullname__: albumentations.core.composition.Compose
+      p: 1.0
+      transforms:
+      - __class_fullname__: albumentations.augmentations.transforms.Normalize
+        always_apply: false
+        max_pixel_value: 255.0
+        mean:
+        - 0.485
+        - 0.456
+        - 0.406
+        p: 1.0
+        std:
+        - 0.229
+        - 0.224
+        - 0.225
+      - __class_fullname__: albumentations.augmentations.transforms.GaussNoise
+        always_apply: false
+        p: 0.5
+        var_limit:
+        - 10.0
+        - 50.0
+        mean: 0
+      - __class_fullname__: albumentations.augmentations.transforms.VerticalFlip
+        always_apply: false
+        p: 0.5
+      - __class_fullname__: albumentations.augmentations.transforms.Resize
+        height: 256
+        width: 256
+        interpolation: 1
+        always_apply: false
+        p: 1

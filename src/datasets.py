@@ -1,40 +1,31 @@
 import os
+from typing import Callable, Dict, List
 
-import torchvision
+import numpy as np
+import torch
 from PIL import Image
-from PIL import ImageFile
 from torch.utils.data import Dataset
-
-ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 
 class SegmentationDataset(Dataset):
     """ PyTorch Dataset for Semnatic Segmentation.
-    Parameters
-    ----------
-    X: list of str
-        Paths to train image.
-
-    y: list of str
-        Paths to ground truth image.
-
-    transform: torchvision.transforms
-        Transform for image.
+    Args:
+        X (List[str]): Paths to each images.
+        y (List[str]): Paths to each mask images.
+        num_classes (int): A number of unique classes.
+        img_size (int): Height and width.
+        transforms (Callable): Callabel instance of albumentations.
     """
-    def __init__(self, X,  y, num_classes: int,
-                 transform=None, img_size: int = 256):
+    def __init__(
+        self, X: List[str], y: List[str], num_classes: int,
+        transforms: Callable, img_size: int = 256
+    ):
         self.num_classes: int = num_classes
         self.X = X
         self.y = y
         self.img_size: int = img_size
         self._check_images_exist()
-
-        if transform is None:
-            transform = torchvision.transforms.Compose([
-                torchvision.transforms.Resize((self.img_size, self.img_size)),
-                torchvision.transforms.ToTensor(),
-            ])
-        self.transform = transform
+        self.transforms: Callable = transforms
 
     def __len__(self) -> int:
         return len(self.X)
@@ -51,10 +42,26 @@ class SegmentationDataset(Dataset):
         self.y = y_
 
     def __getitem__(self, idx):
-        x = Image.open(self.X[idx]).convert('RGB')
-        y = Image.open(self.y[idx])
+        """
+        Returns:
+            Tuple[torch.Tensor, torch.Tensor]:
+                img.size() == torch.Size([3, H, W])
+                mask.size() == torch.Size([1, H, W])
+        """
+        pil_img: Image.Image = Image.open(self.X[idx]).convert('RGB')
+        pil_mask: Image.Image = Image.open(self.y[idx])
 
-        x = self.transform(x)
-        y = self.transform(y) * 255
-        y[y == 255] = 21  # Background
-        return x, y.long()
+        img_arr: np.ndarray = np.array(pil_img)
+        mask_arr: np.ndarray = np.array(pil_mask)
+        aug: Dict[str, np.ndarray] = self.transforms(
+            image=img_arr, mask=mask_arr
+        )
+        img: torch.Tensor = torch.as_tensor(
+            aug['image'].transpose(2, 0, 1)
+        ).float()
+        mask: torch.Tensor = torch.as_tensor(
+            (aug['mask'])
+        ).unsqueeze(0)
+
+        mask[mask == 255] = 21  # Background
+        return img, mask.long()
