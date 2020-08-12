@@ -129,10 +129,8 @@ if __name__ == '__main__':
         model.parameters(), cfg.optimizer.name, **cfg.optimizer.params
     )
 
-    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
-        optimizer,
-        T_max=cfg.num_epochs,
-        eta_min=cfg.min_lr
+    scheduler = cfg_tools.load_scheduler(
+        optimizer, cfg.scheduler.name, **cfg.scheduler.params
     )
 
     trainer = SegmentationTrainer(
