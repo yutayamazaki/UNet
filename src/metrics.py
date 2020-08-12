@@ -12,8 +12,8 @@ def intersection_and_union(
 ):
     """Calculate intersection and union for given labels and predictions.
     Args:
-        y_true (torch.Tensor): Ground truth.
-        y_pred (torch.Tensor): Predictions.
+        y_true (torch.Tensor): Ground truth with shape (N, ).
+        y_pred (torch.Tensor): Predictions with shape (N, ).
         num_classes (int): A unmber of unique classes.
         ignore_index (int): Specify value which ignore like background.
 
@@ -53,8 +53,8 @@ def mean_intersection_over_union(
 ) -> float:
     """Return IoU (a.k.a Jaccard Index) metric average over classes.
     Args:
-        y_true (torch.Tensor): With shape (B, H, W).
-        y_pred (torch.Tensor): With shape (B, num_classes, H, W).
+        y_true (torch.Tensor): With shape (N).
+        y_pred (torch.Tensor): With shape (N, num_classes).
         num_classes (int): A number of  unique classes.
     Returns:
         float: Mean IoU.
