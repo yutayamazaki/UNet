@@ -1,3 +1,4 @@
+from .combo import ComboLoss
 from .dice import DiceLoss, dice_loss
 from .focal import FocalLoss
 from .jaccard import JaccardLoss

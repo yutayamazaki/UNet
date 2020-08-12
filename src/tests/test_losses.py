@@ -66,3 +66,15 @@ class JaccardLossTests(unittest.TestCase):
     def test_return_simple(self):
         loss = self.criterion(self.outputs, self.targets)
         self.assertIsInstance(loss, torch.Tensor)
+
+
+class ComboLossTests(unittest.TestCase):
+
+    def setUp(self):
+        self.outputs = torch.Tensor(([0.1, 0.9], [0.8, 0.2]))
+        self.targets = torch.Tensor([1, 0]).long()
+        self.criterion = losses.ComboLoss(num_classes=2)
+
+    def test_return(self):
+        loss = self.criterion(self.outputs, self.targets)
+        self.assertIsInstance(loss, torch.Tensor)

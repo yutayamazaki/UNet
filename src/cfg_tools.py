@@ -1,4 +1,7 @@
 import torch
+import torch.nn as nn
+
+import losses
 
 
 def load_optimizer(params, name: str, **kwargs) -> torch.optim.Optimizer:
@@ -29,3 +32,16 @@ def load_scheduler(
         msg: str = \
             'name must be CosineAnnealingLR or CosineAnnealingWarmRestarts.'
         raise ValueError(msg)
+
+
+def load_loss(name: str, **kwargs) -> nn.Module:
+    if name == 'CrossEntropyLoss':
+        return nn.CrossEntropyLoss(**kwargs)
+    elif name == 'FocalLoss':
+        return losses.FocalLoss(**kwargs)
+    elif name == 'ComboLoss':
+        return losses.ComboLoss(**kwargs)
+    else:
+        raise ValueError(
+            'name must be "CrossEntropyLoss", "FocalLoss" or "ComboLoss".'
+        )
