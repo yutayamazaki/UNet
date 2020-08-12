@@ -1,3 +1,5 @@
+from typing import Tuple
+
 import torch
 import torch.nn as nn
 
@@ -41,7 +43,10 @@ def load_loss(name: str, **kwargs) -> nn.Module:
         return losses.FocalLoss(**kwargs)
     elif name == 'ComboLoss':
         return losses.ComboLoss(**kwargs)
+    elif name == 'JaccardLoss':
+        return losses.JaccardLoss(**kwargs)
     else:
-        raise ValueError(
-            'name must be "CrossEntropyLoss", "FocalLoss" or "ComboLoss".'
+        attributes: Tuple[str, ...] = (
+            'CrossEntropyLoss', 'FocalLoss', 'ComboLoss', 'JaccardLoss'
         )
+        raise ValueError(f'name must be in {attributes}.')

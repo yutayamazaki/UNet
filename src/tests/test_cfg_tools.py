@@ -5,6 +5,7 @@ import torch
 import torch.nn as nn
 
 import cfg_tools
+import losses
 
 
 class LoadOptimizerTests(unittest.TestCase):
@@ -81,3 +82,36 @@ class LoadSchedulerTests(unittest.TestCase):
                 name='InvalidScheduler',
                 **{}
             )
+
+
+class LoadLossTests(unittest.TestCase):
+
+    def test_cross_entropy(self):
+        name: str = 'CrossEntropyLoss'
+        params: dict = {}
+        criterion = cfg_tools.load_loss(name, **params)
+        self.assertIsInstance(criterion, nn.CrossEntropyLoss)
+
+    def test_focal_loss(self):
+        name: str = 'FocalLoss'
+        params: dict = {}
+        criterion = cfg_tools.load_loss(name, **params)
+        self.assertIsInstance(criterion, losses.FocalLoss)
+
+    def test_combo_loss(self):
+        name: str = 'ComboLoss'
+        params: dict = {'num_classes': 5}
+        criterion = cfg_tools.load_loss(name, **params)
+        self.assertIsInstance(criterion, losses.ComboLoss)
+
+    def test_jaccard_loss(self):
+        name: str = 'JaccardLoss'
+        params: dict = {'num_classes': 5}
+        criterion = cfg_tools.load_loss(name, **params)
+        self.assertIsInstance(criterion, losses.JaccardLoss)
+
+    def test_raise(self):
+        name: str = 'InvalidLossName'
+        params: dict = {}
+        with self.assertRaises(ValueError):
+            cfg_tools.load_loss(name, **params)

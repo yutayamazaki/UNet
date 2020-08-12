@@ -8,14 +8,12 @@ from typing import Any, Dict, List
 import matplotlib.pyplot as plt
 import seaborn as sns
 import torch
-import torch.nn as nn
 import yaml
 
 import cfg_tools
 import models
 import utils
 from datasets import SegmentationDataset
-# from losses import lovasz_softmax
 from trainer import SegmentationTrainer
 
 
@@ -101,7 +99,7 @@ if __name__ == '__main__':
     )
     model = model.to(device)
 
-    criterion = nn.CrossEntropyLoss()
+    criterion = cfg_tools.load_loss(cfg.loss.name, **cfg.loss.params)
 
     X_train, X_valid, y_train, y_valid = load_dataset()
 

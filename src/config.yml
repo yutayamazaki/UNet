@@ -9,6 +9,25 @@ max_lr: 0.01
 momentum: 0.9
 weight_decay: 0.0003
 
+loss:
+  # name: ComboLoss
+  # params:
+  #   num_classes: 5
+  #   ignore_index: null
+  #   weights:
+  #     - 0.5
+  #     - 0.5
+  # name: FocalLoss
+  # params:
+  #   gamma: 2.0
+  #   size_average: True
+  name: CrossEntropyLoss
+  params:
+    weight: null
+    size_average: null
+    ignore_index: -100
+    reduce: null
+    reduction: mean
 optimizer:
   name: SGD
   params:
