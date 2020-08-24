@@ -1,7 +1,8 @@
 import os
 import random
-from typing import Any, Dict, List, Tuple
+from typing import Any, Callable, Dict, List, Tuple
 
+import albumentations as albu
 import numpy as np
 import torch
 import torch.nn as nn
@@ -49,6 +50,43 @@ def resize_masks(masks: torch.Tensor, height: int, width: int) -> torch.Tensor:
     resized: List[torch.Tensor] = []
     for mask in masks:
         resized.append(resize_mask(mask, height, width).unsqueeze(0))
+    return torch.cat(resized, dim=0)
+
+
+def resize_tensor_image(
+    x: torch.Tensor, height: int, width: int
+) -> torch.Tensor:
+    """Resize given image tensor using
+       alubumentations.augmentations.transforms.Resize.
+    Args:
+        x (torch.Tensor): An image tensor with shape (C, H, W).
+        height, width (int): Expected height and width of resized image.
+    Returns:
+        torch.Tensor: Resized image tensor with shape (C, H, W).
+    """
+    transform: Callable = albu.augmentations.transforms.Resize(
+        height=height, width=width
+    )
+    resized: np.ndarray = transform(
+        image=x.permute(1, 2, 0).numpy()
+    )['image']
+    return torch.as_tensor(resized).permute(2, 0, 1)
+
+
+def resize_tensor_images(
+    x: torch.Tensor, height: int, width: int
+) -> torch.Tensor:
+    """Resize given image tensors using
+       alubumentations.augmentations.transforms.Resize.
+    Args:
+        x (torch.Tensor): An image tensor with shape (B, C, H, W).
+        height, width (int): Expected height and width of resized image.
+    Returns:
+        torch.Tensor: Resized image tensor with shape (B, C, H_, W_).
+    """
+    resized: List[torch.Tensor] = []
+    for img in x:
+        resized.append(resize_tensor_image(img, height, width).unsqueeze(0))
     return torch.cat(resized, dim=0)
 
 

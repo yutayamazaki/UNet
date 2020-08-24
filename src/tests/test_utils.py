@@ -34,6 +34,28 @@ class ResizeMasksTests(unittest.TestCase):
         )
 
 
+class ResizeTensorImageTests(unittest.TestCase):
+
+    def test_simple(self):
+        x: torch.Tensor = torch.randn((3, 10, 10))
+        height: int = 5
+        width: int = 8
+        resized: torch.Tensor = utils.resize_tensor_image(x, height, width)
+
+        self.assertEqual(resized.size(), torch.Size((3, height, width)))
+
+
+class ResizeTensorImagesTests(unittest.TestCase):
+
+    def test_simple(self):
+        x: torch.Tensor = torch.randn((2, 3, 10, 10))
+        height: int = 5
+        width: int = 8
+        resized: torch.Tensor = utils.resize_tensor_images(x, height, width)
+
+        self.assertEqual(resized.size(), torch.Size((2, 3, height, width)))
+
+
 class CreateSegmentationResultTests(unittest.TestCase):
 
     def setUp(self):
