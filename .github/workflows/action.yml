@@ -1,4 +1,4 @@
-name: CI Jobs
+name: Python
 
 on: [push]
 
@@ -24,6 +24,6 @@ jobs:
       run: |
         mypy src
     - name: Test
+      working-directory: ./src
       run: |
-        cd src
         python -m unittest discover tests
