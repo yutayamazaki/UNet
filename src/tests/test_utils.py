@@ -2,9 +2,36 @@ import unittest
 from typing import Any, Dict, List, Tuple
 
 import numpy as np
+import torch
 import torch.nn as nn
 
 import utils
+
+
+class ResizeMaskTests(unittest.TestCase):
+
+    def test_return(self):
+        mask: torch.Tensor = torch.randn((5, 10, 20))
+        height: int = 5
+        width: int = 15
+
+        resized_mask: torch.Tensor = utils.resize_mask(mask, height, width)
+        self.assertEqual(resized_mask.size(), torch.Size((5, height, width)))
+
+
+class ResizeMasksTests(unittest.TestCase):
+
+    def test_return(self):
+        masks: torch.Tensor = torch.randn((2, 5, 10, 20))
+        height: int = 15
+        width: int = 25
+
+        resized_masks: torch.Tensor = utils.resize_masks(
+            masks, height, width
+        )
+        self.assertEqual(
+            resized_masks.size(), torch.Size((2, 5, height, width))
+        )
 
 
 class CreateSegmentationResultTests(unittest.TestCase):

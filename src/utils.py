@@ -5,6 +5,7 @@ from typing import Any, Dict, List, Tuple
 import numpy as np
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 import yaml
 
 
@@ -16,6 +17,39 @@ def load_yaml(path: str) -> Dict[str, Any]:
 def dump_yaml(path: str, dic: Dict[str, Any]):
     with open(path, 'w') as f:
         yaml.dump(dic, f)
+
+
+def resize_mask(mask: torch.Tensor, height: int, width: int) -> torch.Tensor:
+    """Resize height and width of semgmentation masks.
+    Args:
+        mask (torch.Tensor): (num_classes, H, W).
+        hight (int): Height to resized.
+        width (int): Expected width.
+    Returns:
+        torch.Tensor: Resized mask (num_classes, H_resized, W_resized).
+    """
+    assert mask.dim() == 3
+    mask = F.interpolate(mask, size=width)
+    mask = mask.permute(0, 2, 1)  # (N, H, W) -> (N, W, H)
+    mask = F.interpolate(mask, size=height)
+    mask = mask.permute(0, 2, 1)
+    return mask
+
+
+def resize_masks(masks: torch.Tensor, height: int, width: int) -> torch.Tensor:
+    """Resize height and width of semgmentation masks.
+    Args:
+        masks (torch.Tensor or List[torch.Tensor]): (B, num_classes, H, W).
+        hight (int): Height to resized.
+        width (int): Expected width.
+    Returns:
+        torch.Tensor: Resized masks (B, num_classes, H_resized, W_resized).
+    """
+    assert masks.dim() == 4
+    resized: List[torch.Tensor] = []
+    for mask in masks:
+        resized.append(resize_mask(mask, height, width).unsqueeze(0))
+    return torch.cat(resized, dim=0)
 
 
 def load_labelmap(path: str) -> List[Tuple[str, Tuple[int]]]:
