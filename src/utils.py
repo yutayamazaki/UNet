@@ -90,6 +90,24 @@ def resize_tensor_images(
     return torch.cat(resized, dim=0)
 
 
+def to_one_hot(
+    y: torch.Tensor, num_classes: int, dtype=torch.long
+) -> torch.Tensor:
+    """
+    Args:
+        y (torch.Tensor): With shape (B, H, W).
+        num_classes (int): A number of unique classes.
+        dtype: Data type of torch.Tensor.
+    Returns:
+        torch.Tensor: One hot tensor with shape (B, num_classes, H, W).
+    """
+    b, h, w = y.size()
+    # (B, H, W) -> (B, 1, H, W)
+    y_tensor = y.view((b, 1, h, w)).type(dtype)
+    zeros = torch.zeros((b, num_classes, h, w), dtype=dtype)
+    return zeros.scatter(1, y_tensor, 1)  # type: ignore
+
+
 def load_labelmap(path: str) -> List[Tuple[str, Tuple[int]]]:
     """
     Args:

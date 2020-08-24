@@ -56,6 +56,21 @@ class ResizeTensorImagesTests(unittest.TestCase):
         self.assertEqual(resized.size(), torch.Size((2, 3, height, width)))
 
 
+def _is_same_tensor(a: torch.Tensor, b: torch.Tensor) -> bool:
+    return torch.all(torch.eq(a, b))
+
+
+class ToOneHotTests(unittest.TestCase):
+
+    def test_simple(self):
+        mask: torch.Tensor = torch.randint(low=0, high=2, size=(2, 15, 10))
+        num_classes: int = 3
+        oh_mask: torch.Tensor = utils.to_one_hot(mask, num_classes)
+
+        self.assertEqual(oh_mask.size(), torch.Size((2, num_classes, 15, 10)))
+        self.assertTrue(_is_same_tensor(oh_mask.argmax(dim=1), mask))
+
+
 class CreateSegmentationResultTests(unittest.TestCase):
 
     def setUp(self):
